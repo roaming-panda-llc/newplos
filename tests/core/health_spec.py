@@ -1,5 +1,3 @@
-
-
 def describe_health_check():
     def it_returns_200(client):
         response = client.get("/health/")

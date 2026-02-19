@@ -1,5 +1,3 @@
-
-
 def describe_home_page():
     def it_returns_200(client):
         response = client.get("/")

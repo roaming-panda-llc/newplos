@@ -1,0 +1,336 @@
+"""BDD-style tests for newplos.settings module branches."""
+
+import importlib
+from unittest.mock import patch
+
+
+def _reload_settings(monkeypatch, env_overrides=None):
+    """Helper: set env vars and reload the settings module.
+
+    Returns the reloaded settings module with fresh attribute values.
+    """
+    # Clear any cached env reads by setting overrides
+    if env_overrides:
+        for key, value in env_overrides.items():
+            if value is None:
+                monkeypatch.delenv(key, raising=False)
+            else:
+                monkeypatch.setenv(key, value)
+
+    from newplos import settings as settings_module
+
+    importlib.reload(settings_module)
+    return settings_module
+
+
+def describe_sentry_dsn():
+    def describe_when_sentry_dsn_is_set():
+        def it_calls_sentry_init_with_dsn(monkeypatch):
+            with patch("sentry_sdk.init") as mock_init:
+                settings_module = _reload_settings(
+                    monkeypatch,
+                    {
+                        "SENTRY_DSN": "https://examplePublicKey@o0.ingest.sentry.io/0",
+                        "DJANGO_DEBUG": "True",
+                    },
+                )
+                mock_init.assert_called_once()
+                call_kwargs = mock_init.call_args[1]
+                assert call_kwargs["dsn"] == "https://examplePublicKey@o0.ingest.sentry.io/0"
+                assert settings_module.SENTRY_DSN == "https://examplePublicKey@o0.ingest.sentry.io/0"
+
+        def it_sets_environment_to_development_when_debug_true(monkeypatch):
+            with patch("sentry_sdk.init") as mock_init:
+                _reload_settings(
+                    monkeypatch,
+                    {
+                        "SENTRY_DSN": "https://examplePublicKey@o0.ingest.sentry.io/0",
+                        "DJANGO_DEBUG": "True",
+                    },
+                )
+                call_kwargs = mock_init.call_args[1]
+                assert call_kwargs["environment"] == "development"
+
+        def it_sets_environment_to_production_when_debug_false(monkeypatch):
+            with patch("sentry_sdk.init") as mock_init:
+                _reload_settings(
+                    monkeypatch,
+                    {
+                        "SENTRY_DSN": "https://examplePublicKey@o0.ingest.sentry.io/0",
+                        "DJANGO_DEBUG": "False",
+                        "DJANGO_SECRET_KEY": "test-secret-key-for-production",
+                        "DJANGO_ALLOWED_HOSTS": "example.com",
+                    },
+                )
+                call_kwargs = mock_init.call_args[1]
+                assert call_kwargs["environment"] == "production"
+
+        def it_sets_traces_sample_rate(monkeypatch):
+            with patch("sentry_sdk.init") as mock_init:
+                _reload_settings(
+                    monkeypatch,
+                    {
+                        "SENTRY_DSN": "https://examplePublicKey@o0.ingest.sentry.io/0",
+                        "DJANGO_DEBUG": "True",
+                    },
+                )
+                call_kwargs = mock_init.call_args[1]
+                assert call_kwargs["traces_sample_rate"] == 0.1
+
+        def it_enables_send_default_pii(monkeypatch):
+            with patch("sentry_sdk.init") as mock_init:
+                _reload_settings(
+                    monkeypatch,
+                    {
+                        "SENTRY_DSN": "https://examplePublicKey@o0.ingest.sentry.io/0",
+                        "DJANGO_DEBUG": "True",
+                    },
+                )
+                call_kwargs = mock_init.call_args[1]
+                assert call_kwargs["send_default_pii"] is True
+
+    def describe_when_sentry_dsn_is_unset():
+        def it_does_not_call_sentry_init(monkeypatch):
+            with patch("sentry_sdk.init") as mock_init:
+                _reload_settings(monkeypatch, {"SENTRY_DSN": None, "DJANGO_DEBUG": "True"})
+                mock_init.assert_not_called()
+
+        def it_sets_sentry_dsn_to_empty_string(monkeypatch):
+            with patch("sentry_sdk.init"):
+                settings_module = _reload_settings(monkeypatch, {"SENTRY_DSN": None, "DJANGO_DEBUG": "True"})
+                assert settings_module.SENTRY_DSN == ""
+
+
+def describe_database_url():
+    def describe_when_database_url_is_set():
+        def it_uses_dj_database_url_parse(monkeypatch):
+            with patch("sentry_sdk.init"):
+                settings_module = _reload_settings(
+                    monkeypatch,
+                    {
+                        "DATABASE_URL": "postgres://user:pass@localhost/dbname",
+                        "DJANGO_DEBUG": "True",
+                        "SENTRY_DSN": None,
+                    },
+                )
+                db_config = settings_module.DATABASES["default"]
+                assert db_config["ENGINE"] == "django.db.backends.postgresql"
+                assert db_config["NAME"] == "dbname"
+
+    def describe_when_database_url_is_unset():
+        def it_falls_back_to_sqlite(monkeypatch):
+            with patch("sentry_sdk.init"):
+                settings_module = _reload_settings(
+                    monkeypatch,
+                    {
+                        "DATABASE_URL": None,
+                        "DJANGO_DEBUG": "True",
+                        "SENTRY_DSN": None,
+                    },
+                )
+                db_config = settings_module.DATABASES["default"]
+                assert db_config["ENGINE"] == "django.db.backends.sqlite3"
+                assert str(db_config["NAME"]).endswith("db.sqlite3")
+
+
+def describe_csrf_trusted_origins():
+    def describe_when_env_is_set():
+        def it_splits_comma_separated_origins(monkeypatch):
+            with patch("sentry_sdk.init"):
+                settings_module = _reload_settings(
+                    monkeypatch,
+                    {
+                        "CSRF_TRUSTED_ORIGINS": "https://example.com,https://other.com",
+                        "DJANGO_DEBUG": "True",
+                        "SENTRY_DSN": None,
+                    },
+                )
+                assert settings_module.CSRF_TRUSTED_ORIGINS == [
+                    "https://example.com",
+                    "https://other.com",
+                ]
+
+        def it_handles_single_origin(monkeypatch):
+            with patch("sentry_sdk.init"):
+                settings_module = _reload_settings(
+                    monkeypatch,
+                    {
+                        "CSRF_TRUSTED_ORIGINS": "https://example.com",
+                        "DJANGO_DEBUG": "True",
+                        "SENTRY_DSN": None,
+                    },
+                )
+                assert settings_module.CSRF_TRUSTED_ORIGINS == ["https://example.com"]
+
+    def describe_when_env_is_unset():
+        def it_returns_empty_list(monkeypatch):
+            with patch("sentry_sdk.init"):
+                settings_module = _reload_settings(
+                    monkeypatch,
+                    {
+                        "CSRF_TRUSTED_ORIGINS": None,
+                        "DJANGO_DEBUG": "True",
+                        "SENTRY_DSN": None,
+                    },
+                )
+                assert settings_module.CSRF_TRUSTED_ORIGINS == []
+
+
+def describe_debug_false():
+    def it_sets_csrf_cookie_secure_true(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {
+                    "DJANGO_DEBUG": "False",
+                    "DJANGO_SECRET_KEY": "test-secret-key-for-production",
+                    "DJANGO_ALLOWED_HOSTS": "example.com",
+                    "SENTRY_DSN": None,
+                },
+            )
+            assert settings_module.CSRF_COOKIE_SECURE is True
+
+    def it_sets_session_cookie_secure_true(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {
+                    "DJANGO_DEBUG": "False",
+                    "DJANGO_SECRET_KEY": "test-secret-key-for-production",
+                    "DJANGO_ALLOWED_HOSTS": "example.com",
+                    "SENTRY_DSN": None,
+                },
+            )
+            assert settings_module.SESSION_COOKIE_SECURE is True
+
+    def it_uses_smtp_email_backend(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {
+                    "DJANGO_DEBUG": "False",
+                    "DJANGO_SECRET_KEY": "test-secret-key-for-production",
+                    "DJANGO_ALLOWED_HOSTS": "example.com",
+                    "SENTRY_DSN": None,
+                },
+            )
+            assert settings_module.EMAIL_BACKEND == "django.core.mail.backends.smtp.EmailBackend"
+
+    def it_sets_debug_to_false(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {
+                    "DJANGO_DEBUG": "False",
+                    "DJANGO_SECRET_KEY": "test-secret-key-for-production",
+                    "DJANGO_ALLOWED_HOSTS": "example.com",
+                    "SENTRY_DSN": None,
+                },
+            )
+            assert settings_module.DEBUG is False
+
+
+def describe_debug_true():
+    def it_sets_csrf_cookie_secure_false(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {"DJANGO_DEBUG": "True", "SENTRY_DSN": None},
+            )
+            assert settings_module.CSRF_COOKIE_SECURE is False
+
+    def it_sets_session_cookie_secure_false(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {"DJANGO_DEBUG": "True", "SENTRY_DSN": None},
+            )
+            assert settings_module.SESSION_COOKIE_SECURE is False
+
+    def it_uses_console_email_backend(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {"DJANGO_DEBUG": "True", "SENTRY_DSN": None},
+            )
+            assert settings_module.EMAIL_BACKEND == "django.core.mail.backends.console.EmailBackend"
+
+    def it_sets_debug_to_true(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {"DJANGO_DEBUG": "True", "SENTRY_DSN": None},
+            )
+            assert settings_module.DEBUG is True
+
+
+def describe_debug_default():
+    def it_defaults_to_debug_true_when_env_not_set(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {"DJANGO_DEBUG": None, "SENTRY_DSN": None},
+            )
+            assert settings_module.DEBUG is True
+
+
+def describe_secret_key():
+    def it_uses_env_var_when_set(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {
+                    "DJANGO_SECRET_KEY": "my-custom-secret",
+                    "DJANGO_DEBUG": "True",
+                    "SENTRY_DSN": None,
+                },
+            )
+            assert settings_module.SECRET_KEY == "my-custom-secret"
+
+    def it_uses_insecure_default_when_unset(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {
+                    "DJANGO_SECRET_KEY": None,
+                    "DJANGO_DEBUG": "True",
+                    "SENTRY_DSN": None,
+                },
+            )
+            assert settings_module.SECRET_KEY == "django-insecure-dev-key-change-in-production"
+
+
+def describe_allowed_hosts():
+    def it_splits_comma_separated_hosts(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {
+                    "DJANGO_ALLOWED_HOSTS": "example.com,api.example.com",
+                    "DJANGO_DEBUG": "True",
+                    "SENTRY_DSN": None,
+                },
+            )
+            assert settings_module.ALLOWED_HOSTS == ["example.com", "api.example.com"]
+
+    def it_defaults_to_localhost(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {
+                    "DJANGO_ALLOWED_HOSTS": None,
+                    "DJANGO_DEBUG": "True",
+                    "SENTRY_DSN": None,
+                },
+            )
+            assert settings_module.ALLOWED_HOSTS == ["localhost", "127.0.0.1"]
+
+
+def describe_secure_proxy_ssl_header():
+    def it_is_always_set(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {"DJANGO_DEBUG": "True", "SENTRY_DSN": None},
+            )
+            assert settings_module.SECURE_PROXY_SSL_HEADER == ("HTTP_X_FORWARDED_PROTO", "https")

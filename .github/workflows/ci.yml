@@ -38,6 +38,11 @@ jobs:
         env:
           DJANGO_SECRET_KEY: test-secret-key-for-ci
 
+      - name: Run mutation tests
+        run: pytest --leela --target .
+        env:
+          DJANGO_SECRET_KEY: test-secret-key-for-ci
+
   lint:
     runs-on: ubuntu-latest
     steps:
