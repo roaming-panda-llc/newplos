@@ -1,0 +1,37 @@
+[project]
+name = "newplos"
+version = "0.1.0"
+requires-python = ">=3.13"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "newplos.settings"
+python_files = ["*_spec.py", "test_*.py"]
+python_classes = ["Describe*"]
+python_functions = ["it_*", "test_*", "describe_*"]
+addopts = "-v --tb=short --cov=newplos --cov=core --cov-report=term-missing"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 120
+
+[tool.ruff.lint]
+extend-select = ["C901"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.mypy]
+python_version = "3.13"
+plugins = ["mypy_django_plugin.main"]
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "newplos.settings"
+
+[tool.coverage.run]
+branch = true
+omit = ["*/migrations/*", "*/tests/*", "manage.py"]
+
+[tool.coverage.report]
+fail_under = 40
+show_missing = true

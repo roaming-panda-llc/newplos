@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load allauth %}
+
+{% block title %}Log In - Past Lives{% endblock %}
+
+{% block content %}
+<h1>Log In</h1>
+{% element form form=form method="POST" action=action %}
+    {% csrf_token %}
+    {% slot body %}
+        {% for field in form %}
+            {% element field field=field %}{% endelement %}
+        {% endfor %}
+    {% endslot %}
+    {% slot actions %}
+        <button type="submit">Log In</button>
+    {% endslot %}
+{% endelement %}
+{% endblock %}

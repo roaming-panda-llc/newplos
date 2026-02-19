@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Past Lives Makerspace{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="{% url 'home' %}">Past Lives</a>
+            {% if user.is_authenticated %}
+                <span>{{ user.email }}</span>
+                <a href="{% url 'account_logout' %}">Log out</a>
+            {% else %}
+                <a href="{% url 'account_login' %}">Log in</a>
+                <a href="{% url 'account_signup' %}">Sign up</a>
+            {% endif %}
+        </nav>
+    </header>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

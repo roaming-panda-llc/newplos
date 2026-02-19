@@ -1,0 +1,6 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 1rem; }
+header nav { display: flex; gap: 1rem; align-items: center; padding: 1rem 0; border-bottom: 1px solid #ddd; margin-bottom: 2rem; }
+header nav a:first-child { font-weight: bold; margin-right: auto; }
+h1 { margin-bottom: 1rem; }
+button { padding: 0.5rem 1rem; cursor: pointer; }

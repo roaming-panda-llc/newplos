@@ -1,0 +1,8 @@
+Django>=5.1,<6.1
+django-allauth[socialaccount]>=65.0
+gunicorn>=23.0
+whitenoise>=6.8
+psycopg[binary]>=3.2
+dj-database-url>=2.3
+django-extensions>=3.2
+sentry-sdk>=2.0
