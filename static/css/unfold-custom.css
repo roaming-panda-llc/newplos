@@ -1,0 +1,18 @@
+/* Past Lives Makerspace - Unfold admin custom styles */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Lato:wght@300;400;700&display=swap');
+
+/* Heading font: Playfair Display */
+h1, h2, h3, h4, h5, h6,
+.font-semibold {
+    font-family: 'Playfair Display', serif;
+}
+
+/* Body font: Lato */
+body,
+input,
+select,
+textarea,
+button,
+.font-normal {
+    font-family: 'Lato', sans-serif;
+}

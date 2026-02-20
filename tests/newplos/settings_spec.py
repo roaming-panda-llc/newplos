@@ -3,6 +3,8 @@
 import importlib
 from unittest.mock import patch
 
+from django.test import RequestFactory
+
 
 def _reload_settings(monkeypatch, env_overrides=None):
     """Helper: set env vars and reload the settings module.
@@ -334,3 +336,91 @@ def describe_secure_proxy_ssl_header():
                 {"DJANGO_DEBUG": "True", "SENTRY_DSN": None},
             )
             assert settings_module.SECURE_PROXY_SSL_HEADER == ("HTTP_X_FORWARDED_PROTO", "https")
+
+
+def _get_unfold(monkeypatch):
+    """Helper: reload settings and return the UNFOLD config dict."""
+    with patch("sentry_sdk.init"):
+        settings_module = _reload_settings(
+            monkeypatch, {"DJANGO_DEBUG": "True", "SENTRY_DSN": None}
+        )
+    return settings_module.UNFOLD
+
+
+def describe_unfold_theme():
+    def it_uses_dark_theme(monkeypatch):
+        unfold = _get_unfold(monkeypatch)
+        assert unfold["THEME"] == "dark"
+
+    def it_uses_6px_border_radius(monkeypatch):
+        unfold = _get_unfold(monkeypatch)
+        assert unfold["BORDER_RADIUS"] == "6px"
+
+
+def describe_unfold_site_identity():
+    def it_sets_site_title_to_past_lives(monkeypatch):
+        unfold = _get_unfold(monkeypatch)
+        assert unfold["SITE_TITLE"] == "Past Lives"
+
+    def it_sets_site_header_to_past_lives(monkeypatch):
+        unfold = _get_unfold(monkeypatch)
+        assert unfold["SITE_HEADER"] == "Past Lives"
+
+    def it_sets_site_symbol(monkeypatch):
+        unfold = _get_unfold(monkeypatch)
+        assert unfold["SITE_SYMBOL"] == "camping"
+
+
+def describe_unfold_colors():
+    def it_has_base_color_scale(monkeypatch):
+        unfold = _get_unfold(monkeypatch)
+        expected_keys = {"50", "100", "200", "300", "400", "500", "600", "700", "800", "900", "950"}
+        assert set(unfold["COLORS"]["base"].keys()) == expected_keys
+
+    def it_has_primary_color_scale(monkeypatch):
+        unfold = _get_unfold(monkeypatch)
+        expected_keys = {"50", "100", "200", "300", "400", "500", "600", "700", "800", "900", "950"}
+        assert set(unfold["COLORS"]["primary"].keys()) == expected_keys
+
+    def it_has_font_color_keys(monkeypatch):
+        unfold = _get_unfold(monkeypatch)
+        expected_keys = {
+            "subtle-light", "subtle-dark",
+            "default-light", "default-dark",
+            "important-light", "important-dark",
+        }
+        assert set(unfold["COLORS"]["font"].keys()) == expected_keys
+
+
+def describe_unfold_site_logo():
+    def it_resolves_light_logo_to_favicon_path(monkeypatch):
+        unfold = _get_unfold(monkeypatch)
+        request = RequestFactory().get("/")
+        path = unfold["SITE_LOGO"]["light"](request)
+        assert "img/favicon.png" in path
+
+    def it_resolves_dark_logo_to_favicon_path(monkeypatch):
+        unfold = _get_unfold(monkeypatch)
+        request = RequestFactory().get("/")
+        path = unfold["SITE_LOGO"]["dark"](request)
+        assert "img/favicon.png" in path
+
+
+def describe_unfold_site_favicons():
+    def it_has_one_favicon_entry(monkeypatch):
+        unfold = _get_unfold(monkeypatch)
+        assert len(unfold["SITE_FAVICONS"]) == 1
+
+    def it_resolves_favicon_href_to_favicon_path(monkeypatch):
+        unfold = _get_unfold(monkeypatch)
+        request = RequestFactory().get("/")
+        href = unfold["SITE_FAVICONS"][0]["href"](request)
+        assert "img/favicon.png" in href
+
+
+def describe_unfold_styles():
+    def it_resolves_custom_css_path(monkeypatch):
+        unfold = _get_unfold(monkeypatch)
+        request = RequestFactory().get("/")
+        css_path = unfold["STYLES"][0](request)
+        assert "css/unfold-custom.css" in css_path

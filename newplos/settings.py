@@ -5,6 +5,8 @@ from pathlib import Path
 
 import dj_database_url
 import sentry_sdk
+from django.templatetags.static import static
+from django.urls import reverse_lazy
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -30,6 +32,8 @@ SESSION_COOKIE_SECURE = not DEBUG
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 INSTALLED_APPS = [
+    "unfold",
+    "unfold.contrib.forms",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -165,5 +169,86 @@ SOCIALACCOUNT_PROVIDERS = {
             "secret": os.environ.get("DISCORD_CLIENT_SECRET", ""),
             "key": "",
         },
+    },
+}
+
+# django-unfold admin theme
+UNFOLD = {
+    "SITE_TITLE": "Past Lives",
+    "SITE_HEADER": "Past Lives",
+    "SITE_SYMBOL": "camping",
+    "SITE_FAVICONS": [
+        {
+            "rel": "icon",
+            "sizes": "100x100",
+            "type": "image/png",
+            "href": lambda request: static("img/favicon.png"),
+        },
+    ],
+    "SITE_LOGO": {
+        "light": lambda request: static("img/favicon.png"),
+        "dark": lambda request: static("img/favicon.png"),
+    },
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "THEME": "dark",
+    "BORDER_RADIUS": "6px",
+    "COLORS": {
+        "base": {
+            # Deep navy scale derived from brand #092e4c
+            "50": "oklch(95% 0.01 240)",
+            "100": "oklch(90% 0.02 240)",
+            "200": "oklch(80% 0.03 240)",
+            "300": "oklch(65% 0.04 240)",
+            "400": "oklch(50% 0.05 240)",
+            "500": "oklch(40% 0.05 240)",
+            "600": "oklch(33% 0.05 240)",
+            "700": "oklch(28% 0.05 238)",
+            "800": "oklch(23% 0.044 240)",
+            "900": "oklch(19% 0.04 240)",
+            "950": "oklch(14% 0.03 240)",
+        },
+        "primary": {
+            # Amber/golden accent scale derived from brand #eeb44b
+            "50": "oklch(97% 0.03 75)",
+            "100": "oklch(94% 0.06 75)",
+            "200": "oklch(90% 0.10 75)",
+            "300": "oklch(85% 0.13 75)",
+            "400": "oklch(80% 0.15 75)",
+            "500": "oklch(75% 0.15 75)",
+            "600": "oklch(65% 0.14 75)",
+            "700": "oklch(55% 0.13 75)",
+            "800": "oklch(45% 0.10 75)",
+            "900": "oklch(38% 0.08 75)",
+            "950": "oklch(28% 0.05 75)",
+        },
+        "font": {
+            # Warm cream text for dark theme
+            "subtle-light": "oklch(72% 0.03 230)",
+            "subtle-dark": "oklch(72% 0.03 230)",
+            "default-light": "oklch(85% 0.02 95)",
+            "default-dark": "oklch(85% 0.02 95)",
+            "important-light": "oklch(95% 0.02 95)",
+            "important-dark": "oklch(95% 0.02 95)",
+        },
+    },
+    "STYLES": [
+        lambda request: static("css/unfold-custom.css"),
+    ],
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": True,
+        "navigation": [
+            {
+                "title": "Navigation",
+                "items": [
+                    {
+                        "title": "Dashboard",
+                        "icon": "dashboard",
+                        "link": reverse_lazy("admin:index"),
+                    },
+                ],
+            },
+        ],
     },
 }

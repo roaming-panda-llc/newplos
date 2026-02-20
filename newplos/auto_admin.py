@@ -9,6 +9,7 @@ Import and call register_all_models() in your admin.py or AppConfig.ready():
 from django.apps import apps
 from django.contrib import admin
 from django.db import models
+from unfold.admin import ModelAdmin as UnfoldModelAdmin
 
 EXCLUDED_APPS = {
     "django.contrib.admin",
@@ -18,6 +19,8 @@ EXCLUDED_APPS = {
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    "unfold",
+    "unfold.contrib.forms",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -83,7 +86,7 @@ def create_model_admin(model):
         admin_attrs["search_fields"] = search_fields
     if list_filter:
         admin_attrs["list_filter"] = list_filter
-    return type(f"{model.__name__}AutoAdmin", (admin.ModelAdmin,), admin_attrs)
+    return type(f"{model.__name__}AutoAdmin", (UnfoldModelAdmin,), admin_attrs)
 
 
 def is_model_registered(model):

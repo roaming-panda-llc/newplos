@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, patch
 
 from django.contrib import admin
 from django.db import models
+from unfold.admin import ModelAdmin as UnfoldModelAdmin
 
 from newplos.auto_admin import (
     EXCLUDED_APPS,
@@ -226,8 +227,13 @@ def describe_get_list_filter_fields_exclusion():
 
 
 def describe_create_model_admin():
-    def it_returns_model_admin_subclass():
+    def it_returns_unfold_model_admin_subclass():
         model = _make_model("AdminTest", {"name": models.CharField(max_length=50)})
+        admin_class = create_model_admin(model)
+        assert issubclass(admin_class, UnfoldModelAdmin)
+
+    def it_is_also_a_django_model_admin_subclass():
+        model = _make_model("AdminTest2", {"name": models.CharField(max_length=50)})
         admin_class = create_model_admin(model)
         assert issubclass(admin_class, admin.ModelAdmin)
 
@@ -433,5 +439,7 @@ def describe_register_all_models_registration():
         assert "django.contrib.messages" in EXCLUDED_APPS
         assert "django.contrib.staticfiles" in EXCLUDED_APPS
         assert "django.contrib.sites" in EXCLUDED_APPS
+        assert "unfold" in EXCLUDED_APPS
+        assert "unfold.contrib.forms" in EXCLUDED_APPS
         assert "allauth" in EXCLUDED_APPS
         assert "django_extensions" in EXCLUDED_APPS
