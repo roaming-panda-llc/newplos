@@ -33,37 +33,6 @@ def describe_get_list_display_fields():
         result = get_list_display_fields(model)
         assert result[0] == "id"
 
-    def it_excludes_non_concrete_fields():
-        model = _make_model("ConcreteOnly", {"name": models.CharField(max_length=50)})
-        fake_field = MagicMock()
-        fake_field.concrete = False
-        fake_field.name = "reverse_relation"
-        original = model._meta.get_fields
-
-        def patched_get_fields():
-            return list(original()) + [fake_field]
-
-        model._meta.get_fields = patched_get_fields
-        result = get_list_display_fields(model)
-        assert "reverse_relation" not in result
-        assert set(result) == {"id", "name"}
-
-    def it_excludes_auto_created_fields():
-        model = _make_model("NoAuto", {"visible": models.CharField(max_length=50)})
-        fake_field = MagicMock()
-        fake_field.concrete = True
-        fake_field.primary_key = False
-        fake_field.auto_created = True
-        fake_field.name = "invisible"
-        original = model._meta.get_fields
-
-        def patched_get_fields():
-            return list(original()) + [fake_field]
-
-        model._meta.get_fields = patched_get_fields
-        result = get_list_display_fields(model)
-        assert "invisible" not in result
-
     def it_truncates_to_max_fields():
         fields = {f"f{i}": models.CharField(max_length=10) for i in range(10)}
         model = _make_model("Wide", fields)
@@ -86,6 +55,91 @@ def describe_get_list_display_fields():
         model = _make_model("TupleCheck", {"name": models.CharField(max_length=50)})
         result = get_list_display_fields(model)
         assert isinstance(result, tuple)
+
+
+def describe_get_list_display_fields_filtering():
+    def it_excludes_non_concrete_fields():
+        model = _make_model("ConcreteOnly", {"name": models.CharField(max_length=50)})
+        fake_field = MagicMock()
+        fake_field.concrete = False
+        fake_field.name = "reverse_relation"
+        original = model._meta.get_fields
+
+        def patched_get_fields():
+            return list(original()) + [fake_field]
+
+        model._meta.get_fields = patched_get_fields
+        result = get_list_display_fields(model)
+        assert "reverse_relation" not in result
+        assert set(result) == {"id", "name"}
+
+    def it_continues_past_non_concrete_fields_to_collect_remaining():
+        """Non-concrete field before multiple concrete fields must not stop iteration."""
+        model = _make_model(
+            "MultiAfterNonConcrete",
+            {
+                "title": models.CharField(max_length=100),
+                "body": models.TextField(),
+            },
+        )
+        non_concrete = MagicMock()
+        non_concrete.concrete = False
+        non_concrete.name = "reverse_rel"
+        original = model._meta.get_fields
+
+        def patched_get_fields():
+            real_fields = list(original())
+            # Insert non-concrete field before the concrete non-pk fields
+            return [real_fields[0], non_concrete] + real_fields[1:]
+
+        model._meta.get_fields = patched_get_fields
+        result = get_list_display_fields(model)
+        assert "reverse_rel" not in result
+        assert "title" in result
+        assert "body" in result
+
+    def it_excludes_auto_created_fields():
+        model = _make_model("NoAuto", {"visible": models.CharField(max_length=50)})
+        fake_field = MagicMock()
+        fake_field.concrete = True
+        fake_field.primary_key = False
+        fake_field.auto_created = True
+        fake_field.name = "invisible"
+        original = model._meta.get_fields
+
+        def patched_get_fields():
+            return list(original()) + [fake_field]
+
+        model._meta.get_fields = patched_get_fields
+        result = get_list_display_fields(model)
+        assert "invisible" not in result
+
+    def it_continues_past_auto_created_fields_to_collect_remaining():
+        """Auto-created field before multiple concrete fields must not stop iteration."""
+        model = _make_model(
+            "MultiAfterAutoCreated",
+            {
+                "title": models.CharField(max_length=100),
+                "body": models.TextField(),
+            },
+        )
+        auto_field = MagicMock()
+        auto_field.concrete = True
+        auto_field.primary_key = False
+        auto_field.auto_created = True
+        auto_field.name = "auto_ptr"
+        original = model._meta.get_fields
+
+        def patched_get_fields():
+            real_fields = list(original())
+            # Insert auto-created field before the concrete non-pk fields
+            return [real_fields[0], auto_field] + real_fields[1:]
+
+        model._meta.get_fields = patched_get_fields
+        result = get_list_display_fields(model)
+        assert "auto_ptr" not in result
+        assert "title" in result
+        assert "body" in result
 
 
 def describe_get_search_fields_inclusion():

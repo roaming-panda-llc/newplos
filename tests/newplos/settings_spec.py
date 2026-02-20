@@ -341,9 +341,7 @@ def describe_secure_proxy_ssl_header():
 def _get_unfold(monkeypatch):
     """Helper: reload settings and return the UNFOLD config dict."""
     with patch("sentry_sdk.init"):
-        settings_module = _reload_settings(
-            monkeypatch, {"DJANGO_DEBUG": "True", "SENTRY_DSN": None}
-        )
+        settings_module = _reload_settings(monkeypatch, {"DJANGO_DEBUG": "True", "SENTRY_DSN": None})
     return settings_module.UNFOLD
 
 
@@ -385,9 +383,12 @@ def describe_unfold_colors():
     def it_has_font_color_keys(monkeypatch):
         unfold = _get_unfold(monkeypatch)
         expected_keys = {
-            "subtle-light", "subtle-dark",
-            "default-light", "default-dark",
-            "important-light", "important-dark",
+            "subtle-light",
+            "subtle-dark",
+            "default-light",
+            "default-dark",
+            "important-light",
+            "important-dark",
         }
         assert set(unfold["COLORS"]["font"].keys()) == expected_keys
 

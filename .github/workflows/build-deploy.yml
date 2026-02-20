@@ -1,36 +1,18 @@
 name: Build and Deploy
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: roaming-panda-llc/newplos
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-          cache: 'pip'
-
-      - name: Install dependencies
-        run: pip install -r requirements-dev.txt
-
-      - name: Run tests
-        env:
-          DJANGO_SECRET_KEY: test-secret-key-for-ci
-        run: pytest
-
   build-and-push:
-    needs: test
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: read
