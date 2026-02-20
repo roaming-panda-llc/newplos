@@ -489,3 +489,64 @@ def describe_lease_is_active():
             start_date=today + timedelta(days=1),
         )
         assert lease.is_active is False
+
+
+def describe_lease_is_active_start_date_boundary():
+    """Boundary-value tests for the start_date > today comparison.
+
+    These use in-memory Lease instances (no ORM create) to ensure
+    the mutated class's is_active property is exercised directly.
+    This kills mutants that change ``>`` to ``>=`` or ``<=``.
+    """
+
+    def it_is_active_when_start_date_equals_today():
+        """start_date == today means the lease has started; is_active is True.
+
+        Kills ``> → >=``: with ``>=``, ``today >= today`` is True so the
+        guard fires and is_active incorrectly returns False.
+        """
+        today = timezone.now().date()
+        lease = Lease(start_date=today, end_date=None)
+        assert lease.is_active is True
+
+    def it_is_not_active_when_start_date_is_tomorrow():
+        """start_date == tomorrow means the lease hasn't started; is_active is False.
+
+        Kills ``> → <=``: with ``<=``, ``tomorrow <= today`` is False so the
+        guard does NOT fire and is_active incorrectly returns True.
+        """
+        today = timezone.now().date()
+        lease = Lease(start_date=today + timedelta(days=1), end_date=None)
+        assert lease.is_active is False
+
+
+def describe_lease_is_active_end_date_boundary():
+    """Boundary-value tests for the end_date < today comparison.
+
+    These use in-memory Lease instances (no ORM create) to ensure
+    the mutated class's is_active property is exercised directly.
+    This kills mutants that change ``<`` to ``<=`` or ``>=``.
+    """
+
+    def it_is_active_when_end_date_equals_today():
+        """end_date == today means the lease is still active on its last day.
+
+        Kills ``< → <=``: with ``<=``, ``today <= today`` is True so the
+        guard fires and is_active incorrectly returns False.
+        """
+        today = timezone.now().date()
+        lease = Lease(start_date=today - timedelta(days=30), end_date=today)
+        assert lease.is_active is True
+
+    def it_is_not_active_when_end_date_is_yesterday():
+        """end_date == yesterday means the lease has expired; is_active is False.
+
+        Kills ``< → >=``: with ``>=``, ``yesterday >= today`` is False so the
+        guard does NOT fire and is_active incorrectly returns True.
+        """
+        today = timezone.now().date()
+        lease = Lease(
+            start_date=today - timedelta(days=30),
+            end_date=today - timedelta(days=1),
+        )
+        assert lease.is_active is False
