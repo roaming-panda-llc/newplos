@@ -1,6 +1,192 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap');
+
+:root {
+    --color-bg: #092e4c;
+    --color-surface: #0d3a5e;
+    --color-text: #f4efdd;
+    --color-text-muted: #b8c4ce;
+    --color-accent: #eeb44b;
+    --color-accent-hover: #d4a043;
+    --font-heading: 'Playfair Display', Georgia, serif;
+    --font-body: 'Lato', system-ui, -apple-system, sans-serif;
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 1rem; }
-header nav { display: flex; gap: 1rem; align-items: center; padding: 1rem 0; border-bottom: 1px solid #ddd; margin-bottom: 2rem; }
-header nav a:first-child { font-weight: bold; margin-right: auto; }
-h1 { margin-bottom: 1rem; }
-button { padding: 0.5rem 1rem; cursor: pointer; }
+
+body {
+    font-family: var(--font-body);
+    line-height: 1.6;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+a {
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: var(--color-accent-hover);
+}
+
+/* Navigation */
+.site-header {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem;
+}
+
+.site-nav {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(244, 239, 221, 0.1);
+}
+
+.site-nav__brand {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-right: auto;
+}
+
+.site-nav__brand:hover {
+    color: var(--color-accent);
+}
+
+.site-nav__link {
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: var(--color-text-muted);
+    letter-spacing: 0.02em;
+}
+
+.site-nav__link:hover {
+    color: var(--color-accent);
+}
+
+.site-nav__user {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+/* Main content */
+.site-main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 1.5rem 3rem;
+}
+
+/* Hero section */
+.hero {
+    text-align: center;
+    padding: 4rem 1rem 3rem;
+}
+
+.hero__title {
+    font-size: 3.5rem;
+    color: var(--color-text);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.01em;
+}
+
+.hero__subtitle {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--color-accent);
+    margin-bottom: 2rem;
+}
+
+.hero__description {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+    max-width: 560px;
+    margin: 0 auto;
+    line-height: 1.8;
+}
+
+/* Content card */
+.content-card {
+    background-color: var(--color-surface);
+    border-radius: 8px;
+    padding: 2rem;
+    margin-top: 2rem;
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.75rem;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn--primary {
+    background-color: var(--color-accent);
+    color: var(--color-bg);
+}
+
+.btn--primary:hover {
+    background-color: var(--color-accent-hover);
+    color: var(--color-bg);
+}
+
+/* Footer */
+.site-footer {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    border-top: 1px solid rgba(244, 239, 221, 0.1);
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .hero {
+        padding: 2.5rem 0.5rem 2rem;
+    }
+
+    .hero__title {
+        font-size: 2.5rem;
+    }
+
+    .hero__subtitle {
+        font-size: 1rem;
+    }
+
+    .hero__description {
+        font-size: 1rem;
+    }
+
+    .content-card {
+        padding: 1.5rem;
+    }
+
+    .site-nav {
+        flex-wrap: wrap;
+    }
+}

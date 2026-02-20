@@ -418,6 +418,22 @@ def describe_unfold_site_favicons():
         assert "img/favicon.png" in href
 
 
+def describe_unfold_login():
+    def it_has_login_key(monkeypatch):
+        unfold = _get_unfold(monkeypatch)
+        assert "LOGIN" in unfold
+
+    def it_has_callable_image(monkeypatch):
+        unfold = _get_unfold(monkeypatch)
+        assert callable(unfold["LOGIN"]["image"])
+
+    def it_resolves_image_to_favicon_path(monkeypatch):
+        unfold = _get_unfold(monkeypatch)
+        request = RequestFactory().get("/")
+        path = unfold["LOGIN"]["image"](request)
+        assert "favicon.png" in path
+
+
 def describe_unfold_styles():
     def it_resolves_custom_css_path(monkeypatch):
         unfold = _get_unfold(monkeypatch)

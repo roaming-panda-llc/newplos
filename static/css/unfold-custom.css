@@ -16,3 +16,14 @@ button,
 .font-normal {
     font-family: 'Lato', sans-serif;
 }
+
+/* Google sign-in button hover */
+.google-signin-btn {
+    background-color: #eeb44b;
+    color: #1a1a1a;
+    transition: background-color 0.2s ease;
+}
+
+.google-signin-btn:hover {
+    background-color: #d9a243;
+}

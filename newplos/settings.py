@@ -232,6 +232,9 @@ UNFOLD = {
             "important-dark": "oklch(95% 0.02 95)",
         },
     },
+    "LOGIN": {
+        "image": lambda request: static("img/favicon.png"),
+    },
     "STYLES": [
         lambda request: static("css/unfold-custom.css"),
     ],
