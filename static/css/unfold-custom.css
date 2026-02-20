@@ -6,6 +6,9 @@
  * Color Palette:
  *   Primary:   Matte Navy #092E4C, Soft Blue #96ACBB
  *   Secondary: Tuscan Yellow #EEB44B, PL Black #1D1E1E, PL Cream #F4EFDD
+ *
+ * Note: Google Fonts loaded via Unfold STYLES config; no @import needed here
+ * since Unfold includes its own font loading mechanism. We apply families directly.
  */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Lato:wght@300;400;700&display=swap');
 
@@ -25,13 +28,25 @@ button,
     font-family: 'Lato', sans-serif;
 }
 
-/* Google sign-in button - Tuscan Yellow accent */
+/* Google sign-in button on admin login */
 .google-signin-btn {
     background-color: #EEB44B;
     color: #092E4C;
-    transition: background-color 0.2s ease;
+    font-weight: 600;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .google-signin-btn:hover {
     background-color: #d4a043;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.google-signin-btn:focus-visible {
+    outline: 2px solid #EEB44B;
+    outline-offset: 2px;
+}
+
+/* Ensure proper text selection styling in admin */
+::selection {
+    background-color: rgba(238, 180, 75, 0.3);
 }

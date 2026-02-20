@@ -4,14 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Past Lives Makerspace - Portland's community workshop for creators, builders, and makers. Do It Together.">
+    <meta name="theme-color" content="#092E4C">
     <title>{% block title %}Past Lives Makerspace{% endblock %}</title>
     {% load static %}
     <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <header class="site-header">
-        <nav class="site-nav">
+        <nav class="site-nav" aria-label="Main navigation">
             <a href="{% url 'home' %}" class="site-nav__brand">Past Lives</a>
             {% if user.is_authenticated %}
                 <span class="site-nav__user">{{ user.email }}</span>
@@ -19,11 +21,19 @@
             {% endif %}
         </nav>
     </header>
-    <main class="site-main">
+    <main id="main-content" class="site-main">
+        {% if messages %}
+            <ul class="messages" role="alert">
+                {% for message in messages %}
+                    <li class="{{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
         {% block content %}{% endblock %}
     </main>
     <footer class="site-footer">
-        &copy; 2026 Past Lives Makerspace &middot; Do It Together
+        <p class="site-footer__tagline">Do It Together</p>
+        <p class="site-footer__copy">&copy; 2026 Past Lives Makerspace</p>
     </footer>
 </body>
 </html>
