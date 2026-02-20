@@ -1,17 +1,21 @@
 from unittest.mock import MagicMock, patch
 
+from allauth.socialaccount.models import SocialAccount, SocialApp, SocialToken
 from django.contrib import admin
+from django.contrib.sites.models import Site
 from django.db import models
 from unfold.admin import ModelAdmin as UnfoldModelAdmin
 
 from newplos.auto_admin import (
     EXCLUDED_APPS,
+    HIDDEN_MODELS,
     create_model_admin,
     get_list_display_fields,
     get_list_filter_fields,
     get_search_fields,
     is_model_registered,
     register_all_models,
+    unregister_hidden_models,
 )
 
 
@@ -497,3 +501,79 @@ def describe_register_all_models_registration():
         assert "unfold.contrib.forms" in EXCLUDED_APPS
         assert "allauth" in EXCLUDED_APPS
         assert "django_extensions" in EXCLUDED_APPS
+
+
+def describe_hidden_models():
+    def it_contains_site():
+        assert Site in HIDDEN_MODELS
+
+    def it_contains_social_app():
+        assert SocialApp in HIDDEN_MODELS
+
+    def it_contains_social_token():
+        assert SocialToken in HIDDEN_MODELS
+
+    def it_contains_social_account():
+        assert SocialAccount in HIDDEN_MODELS
+
+    def it_contains_exactly_the_four_expected_models():
+        assert HIDDEN_MODELS == {Site, SocialApp, SocialToken, SocialAccount}
+
+
+def describe_unregister_hidden_models():
+    def it_unregisters_all_registered_hidden_models():
+        with (
+            patch("newplos.auto_admin.is_model_registered", return_value=True),
+            patch("newplos.auto_admin.admin.site.unregister") as mock_unregister,
+        ):
+            unregister_hidden_models()
+            assert mock_unregister.call_count == len(HIDDEN_MODELS)
+
+    def it_skips_models_that_are_not_registered():
+        with (
+            patch("newplos.auto_admin.is_model_registered", return_value=False),
+            patch("newplos.auto_admin.admin.site.unregister") as mock_unregister,
+        ):
+            unregister_hidden_models()
+            mock_unregister.assert_not_called()
+
+    def it_returns_count_of_unregistered_models():
+        with (
+            patch("newplos.auto_admin.is_model_registered", return_value=True),
+            patch("newplos.auto_admin.admin.site.unregister"),
+        ):
+            count = unregister_hidden_models()
+            assert count == len(HIDDEN_MODELS)
+
+    def it_returns_zero_when_none_are_registered():
+        with (
+            patch("newplos.auto_admin.is_model_registered", return_value=False),
+            patch("newplos.auto_admin.admin.site.unregister"),
+        ):
+            count = unregister_hidden_models()
+            assert count == 0
+
+    def it_returns_partial_count_when_some_are_registered():
+        registered = {Site, SocialApp}
+
+        def mock_is_registered(model):
+            return model in registered
+
+        with (
+            patch("newplos.auto_admin.is_model_registered", side_effect=mock_is_registered),
+            patch("newplos.auto_admin.admin.site.unregister"),
+        ):
+            count = unregister_hidden_models()
+            assert count == 2
+
+    def it_removes_models_from_admin_registry():
+        admin_class = type("SiteAdmin", (admin.ModelAdmin,), {})
+        admin.site.register(Site, admin_class)
+        try:
+            assert is_model_registered(Site)
+            with patch("newplos.auto_admin.HIDDEN_MODELS", {Site}):
+                unregister_hidden_models()
+            assert not is_model_registered(Site)
+        finally:
+            if is_model_registered(Site):
+                admin.site.unregister(Site)

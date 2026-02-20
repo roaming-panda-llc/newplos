@@ -50,3 +50,24 @@ button,
 ::selection {
     background-color: rgba(238, 180, 75, 0.3);
 }
+
+/* Admin index: model name links fill their table cell */
+.module table th[scope="row"] a {
+    display: block;
+    margin: -0.75rem;
+    padding: 0.75rem;
+}
+
+/* Change list: primary column link fills its cell */
+#result_list th > a:only-child {
+    display: block;
+    margin: -0.5rem -0.75rem;
+    padding: 0.5rem 0.75rem;
+}
+
+@media (min-width: 1024px) {
+    #result_list th > a:only-child {
+        margin: -0.75rem;
+        padding: 0.75rem;
+    }
+}

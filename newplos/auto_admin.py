@@ -6,8 +6,10 @@ Import and call register_all_models() in your admin.py or AppConfig.ready():
     register_all_models()
 """
 
+from allauth.socialaccount.models import SocialAccount, SocialApp, SocialToken
 from django.apps import apps
 from django.contrib import admin
+from django.contrib.sites.models import Site
 from django.db import models
 from unfold.admin import ModelAdmin as UnfoldModelAdmin
 
@@ -29,6 +31,19 @@ EXCLUDED_APPS = {
     "allauth.socialaccount.providers.discord",
     "django_extensions",
 }
+
+
+HIDDEN_MODELS = {Site, SocialApp, SocialToken, SocialAccount}
+
+
+def unregister_hidden_models():
+    """Unregister third-party models we don't want visible in admin."""
+    count = 0
+    for model in HIDDEN_MODELS:
+        if is_model_registered(model):
+            admin.site.unregister(model)
+            count += 1
+    return count
 
 
 def get_list_display_fields(model, max_fields=6):
