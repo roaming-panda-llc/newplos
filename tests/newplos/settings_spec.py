@@ -3,6 +3,8 @@
 import importlib
 from unittest.mock import patch
 
+import pytest
+
 from django.test import RequestFactory
 
 
@@ -441,3 +443,115 @@ def describe_unfold_styles():
         request = RequestFactory().get("/")
         css_path = unfold["STYLES"][0](request)
         assert "css/unfold-custom.css" in css_path
+
+
+def describe_admin_domains_empty():
+    def it_returns_empty_list_when_env_is_unset(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {"ADMIN_DOMAINS": None, "DJANGO_DEBUG": "True", "SENTRY_DSN": None},
+            )
+            assert settings_module.ADMIN_DOMAINS == []
+
+    def it_returns_empty_list_when_env_is_empty_string(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {"ADMIN_DOMAINS": "", "DJANGO_DEBUG": "True", "SENTRY_DSN": None},
+            )
+            assert settings_module.ADMIN_DOMAINS == []
+
+    def it_returns_empty_list_when_env_is_whitespace_only(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {"ADMIN_DOMAINS": "   ", "DJANGO_DEBUG": "True", "SENTRY_DSN": None},
+            )
+            assert settings_module.ADMIN_DOMAINS == []
+
+
+def describe_admin_domains_valid():
+    def it_returns_single_domain(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {"ADMIN_DOMAINS": "example.com", "DJANGO_DEBUG": "True", "SENTRY_DSN": None},
+            )
+            assert settings_module.ADMIN_DOMAINS == ["example.com"]
+
+    def it_returns_multiple_domains(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {
+                    "ADMIN_DOMAINS": "pastlives.space,roaming-panda.com",
+                    "DJANGO_DEBUG": "True",
+                    "SENTRY_DSN": None,
+                },
+            )
+            assert settings_module.ADMIN_DOMAINS == ["pastlives.space", "roaming-panda.com"]
+
+    def it_strips_whitespace_around_domains(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {
+                    "ADMIN_DOMAINS": " pastlives.space , roaming-panda.com ",
+                    "DJANGO_DEBUG": "True",
+                    "SENTRY_DSN": None,
+                },
+            )
+            assert settings_module.ADMIN_DOMAINS == ["pastlives.space", "roaming-panda.com"]
+
+    def it_lowercases_domains(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {"ADMIN_DOMAINS": "PASTLIVES.SPACE,Roaming-Panda.COM", "DJANGO_DEBUG": "True", "SENTRY_DSN": None},
+            )
+            assert settings_module.ADMIN_DOMAINS == ["pastlives.space", "roaming-panda.com"]
+
+
+def describe_admin_domains_validation():
+    def it_raises_for_email_address(monkeypatch):
+        with patch("sentry_sdk.init"):
+            with pytest.raises(ValueError, match="not email addresses"):
+                _reload_settings(
+                    monkeypatch,
+                    {"ADMIN_DOMAINS": "user@example.com", "DJANGO_DEBUG": "True", "SENTRY_DSN": None},
+                )
+
+    def it_raises_for_domain_with_spaces(monkeypatch):
+        with patch("sentry_sdk.init"):
+            with pytest.raises(ValueError, match="spaces"):
+                _reload_settings(
+                    monkeypatch,
+                    {"ADMIN_DOMAINS": "past lives.space", "DJANGO_DEBUG": "True", "SENTRY_DSN": None},
+                )
+
+    def it_raises_for_trailing_comma(monkeypatch):
+        with patch("sentry_sdk.init"):
+            with pytest.raises(ValueError, match="empty domain entry"):
+                _reload_settings(
+                    monkeypatch,
+                    {"ADMIN_DOMAINS": "example.com,", "DJANGO_DEBUG": "True", "SENTRY_DSN": None},
+                )
+
+    def it_raises_for_domain_without_dot(monkeypatch):
+        with patch("sentry_sdk.init"):
+            with pytest.raises(ValueError, match="no dot"):
+                _reload_settings(
+                    monkeypatch,
+                    {"ADMIN_DOMAINS": "localhost", "DJANGO_DEBUG": "True", "SENTRY_DSN": None},
+                )
+
+
+def describe_socialaccount_adapter_setting():
+    def it_points_to_auto_admin_adapter(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {"DJANGO_DEBUG": "True", "SENTRY_DSN": None},
+            )
+            assert settings_module.SOCIALACCOUNT_ADAPTER == "newplos.adapters.AutoAdminSocialAccountAdapter"
