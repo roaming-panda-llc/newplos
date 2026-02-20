@@ -57,36 +57,28 @@ def describe_active_lease_q():
             mock_tz.now.return_value.date.return_value = ref
             q = _active_lease_q()
 
-        expected = Q(start_date__lte=ref) & (
-            Q(end_date__isnull=True) | Q(end_date__gte=ref)
-        )
+        expected = Q(start_date__lte=ref) & (Q(end_date__isnull=True) | Q(end_date__gte=ref))
         assert q == expected
 
     def it_uses_explicit_today_parameter():
         ref = date(2024, 12, 25)
         q = _active_lease_q(today=ref)
 
-        expected = Q(start_date__lte=ref) & (
-            Q(end_date__isnull=True) | Q(end_date__gte=ref)
-        )
+        expected = Q(start_date__lte=ref) & (Q(end_date__isnull=True) | Q(end_date__gte=ref))
         assert q == expected
 
     def it_applies_prefix_to_field_names():
         ref = date(2025, 1, 1)
         q = _active_lease_q(prefix="lease__", today=ref)
 
-        expected = Q(lease__start_date__lte=ref) & (
-            Q(lease__end_date__isnull=True) | Q(lease__end_date__gte=ref)
-        )
+        expected = Q(lease__start_date__lte=ref) & (Q(lease__end_date__isnull=True) | Q(lease__end_date__gte=ref))
         assert q == expected
 
     def it_applies_leases_prefix_for_related_lookups():
         ref = date(2025, 3, 10)
         q = _active_lease_q(prefix="leases__", today=ref)
 
-        expected = Q(leases__start_date__lte=ref) & (
-            Q(leases__end_date__isnull=True) | Q(leases__end_date__gte=ref)
-        )
+        expected = Q(leases__start_date__lte=ref) & (Q(leases__end_date__isnull=True) | Q(leases__end_date__gte=ref))
         assert q == expected
 
 
