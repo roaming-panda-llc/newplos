@@ -314,7 +314,7 @@ class Lease(models.Model):
     @property
     def is_active(self) -> bool:
         today = timezone.now().date()
-        if self.start_date > today:
+        if self.start_date is None or self.start_date > today:
             return False
         if self.end_date is not None and self.end_date < today:
             return False

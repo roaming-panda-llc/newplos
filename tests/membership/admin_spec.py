@@ -3,7 +3,8 @@ from decimal import Decimal
 
 import pytest
 from django.contrib import admin
-from django.test import RequestFactory
+from django.contrib.auth import get_user_model
+from django.test import Client, RequestFactory
 from django.utils import timezone
 
 from membership.admin import (
@@ -15,6 +16,8 @@ from membership.admin import (
     SpaceAdmin,
 )
 from membership.models import Lease, Member, MembershipPlan, Space
+
+User = get_user_model()
 
 
 def describe_admin_registration():
@@ -445,3 +448,200 @@ def describe_admin_lease_and_inline_fields():
         inline = LeaseInlineSpace(Space, admin.site)
         result = inline.is_active_display(lease)
         assert result is True
+
+
+def describe_lease_is_active():
+    def it_returns_false_when_start_date_is_none():
+        lease = Lease(start_date=None)
+        assert lease.is_active is False
+
+
+# ---------------------------------------------------------------------------
+# Admin View Integration Tests (HTTP-level)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture()
+def admin_client():
+    """Return a Django test client logged in as a superuser."""
+    user = User.objects.create_superuser(
+        username="admin-test",
+        password="admin-test-pw",
+        email="admin-test@example.com",
+    )
+    client = Client()
+    client.force_login(user)
+    return client
+
+
+@pytest.fixture()
+def sample_plan():
+    return MembershipPlan.objects.create(
+        name="View Test Plan",
+        monthly_price=Decimal("100.00"),
+    )
+
+
+@pytest.fixture()
+def sample_member(sample_plan):
+    return Member.objects.create(
+        full_legal_name="View Test Member",
+        email="viewtest@example.com",
+        membership_plan=sample_plan,
+        join_date=date(2024, 6, 1),
+    )
+
+
+@pytest.fixture()
+def sample_space():
+    return Space.objects.create(
+        space_id="VT-001",
+        space_type="studio",
+        status="available",
+    )
+
+
+@pytest.fixture()
+def sample_lease(sample_member, sample_space):
+    return Lease.objects.create(
+        member=sample_member,
+        space=sample_space,
+        lease_type="month_to_month",
+        base_price=Decimal("300.00"),
+        monthly_rent=Decimal("300.00"),
+        start_date=date(2024, 6, 1),
+    )
+
+
+@pytest.mark.django_db
+def describe_admin_membership_plan_views():
+    def it_loads_changelist(admin_client):
+        resp = admin_client.get("/admin/membership/membershipplan/")
+        assert resp.status_code == 200
+
+    def it_loads_add_form(admin_client):
+        resp = admin_client.get("/admin/membership/membershipplan/add/")
+        assert resp.status_code == 200
+
+    def it_loads_change_form(admin_client, sample_plan):
+        resp = admin_client.get(f"/admin/membership/membershipplan/{sample_plan.pk}/change/")
+        assert resp.status_code == 200
+
+    def it_creates_via_post(admin_client):
+        resp = admin_client.post(
+            "/admin/membership/membershipplan/add/",
+            {
+                "name": "POST Created Plan",
+                "monthly_price": "150.00",
+                "notes": "",
+            },
+        )
+        assert resp.status_code == 302
+        assert MembershipPlan.objects.filter(name="POST Created Plan").exists()
+
+
+@pytest.mark.django_db
+def describe_admin_member_views():
+    def it_loads_changelist(admin_client, sample_member):
+        resp = admin_client.get("/admin/membership/member/")
+        assert resp.status_code == 200
+
+    def it_loads_add_form(admin_client, sample_plan):
+        resp = admin_client.get("/admin/membership/member/add/")
+        assert resp.status_code == 200
+
+    def it_loads_change_form(admin_client, sample_member):
+        resp = admin_client.get(f"/admin/membership/member/{sample_member.pk}/change/")
+        assert resp.status_code == 200
+
+    def it_creates_via_post(admin_client, sample_plan):
+        resp = admin_client.post(
+            "/admin/membership/member/add/",
+            {
+                "full_legal_name": "POST Created Member",
+                "preferred_name": "",
+                "email": "postcreated@example.com",
+                "phone": "",
+                "membership_plan": sample_plan.pk,
+                "status": "active",
+                "role": "standard",
+                "join_date": "2024-06-15",
+                "notes": "",
+                "emergency_contact_name": "",
+                "emergency_contact_phone": "",
+                "emergency_contact_relationship": "",
+                # Inline management form (required for inlines)
+                "leases-TOTAL_FORMS": "0",
+                "leases-INITIAL_FORMS": "0",
+                "leases-MIN_NUM_FORMS": "0",
+                "leases-MAX_NUM_FORMS": "1000",
+            },
+        )
+        assert resp.status_code == 302
+        assert Member.objects.filter(full_legal_name="POST Created Member").exists()
+
+
+@pytest.mark.django_db
+def describe_admin_space_views():
+    def it_loads_changelist(admin_client, sample_space):
+        resp = admin_client.get("/admin/membership/space/")
+        assert resp.status_code == 200
+
+    def it_loads_add_form(admin_client):
+        resp = admin_client.get("/admin/membership/space/add/")
+        assert resp.status_code == 200
+
+    def it_loads_change_form(admin_client, sample_space):
+        resp = admin_client.get(f"/admin/membership/space/{sample_space.pk}/change/")
+        assert resp.status_code == 200
+
+    def it_creates_via_post(admin_client):
+        resp = admin_client.post(
+            "/admin/membership/space/add/",
+            {
+                "space_id": "POST-S1",
+                "name": "",
+                "space_type": "studio",
+                "status": "available",
+                "floorplan_ref": "",
+                "notes": "",
+                # Inline management form (required for inlines)
+                "leases-TOTAL_FORMS": "0",
+                "leases-INITIAL_FORMS": "0",
+                "leases-MIN_NUM_FORMS": "0",
+                "leases-MAX_NUM_FORMS": "1000",
+            },
+        )
+        assert resp.status_code == 302
+        assert Space.objects.filter(space_id="POST-S1").exists()
+
+
+@pytest.mark.django_db
+def describe_admin_lease_views():
+    def it_loads_changelist(admin_client, sample_lease):
+        resp = admin_client.get("/admin/membership/lease/")
+        assert resp.status_code == 200
+
+    def it_loads_add_form(admin_client, sample_member, sample_space):
+        resp = admin_client.get("/admin/membership/lease/add/")
+        assert resp.status_code == 200
+
+    def it_loads_change_form(admin_client, sample_lease):
+        resp = admin_client.get(f"/admin/membership/lease/{sample_lease.pk}/change/")
+        assert resp.status_code == 200
+
+    def it_creates_via_post(admin_client, sample_member, sample_space):
+        resp = admin_client.post(
+            "/admin/membership/lease/add/",
+            {
+                "member": sample_member.pk,
+                "space": sample_space.pk,
+                "lease_type": "month_to_month",
+                "base_price": "400.00",
+                "monthly_rent": "400.00",
+                "start_date": "2024-07-01",
+                "notes": "",
+            },
+        )
+        assert resp.status_code == 302
+        assert Lease.objects.filter(base_price=Decimal("400.00")).exists()
