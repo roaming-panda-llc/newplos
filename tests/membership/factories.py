@@ -46,6 +46,4 @@ class LeaseFactory(factory.django.DjangoModelFactory):
     lease_type = Lease.LeaseType.MONTH_TO_MONTH
     base_price = Decimal("200.00")
     monthly_rent = Decimal("200.00")
-    start_date = factory.LazyFunction(
-        lambda: timezone.now().date() - timedelta(days=30)
-    )
+    start_date = factory.LazyFunction(lambda: timezone.now().date() - timedelta(days=30))
