@@ -1,10 +1,11 @@
-"""BDD-style tests for newplos.adapters module — auto-admin on social login."""
+"""BDD-style tests for newplos.adapters module — auto-admin and admin redirect."""
 
 import logging
 from unittest.mock import MagicMock, patch
 
 import pytest
 from django.contrib.auth.models import User
+from django.test import RequestFactory, override_settings
 
 pytestmark = pytest.mark.django_db
 
@@ -35,7 +36,7 @@ def _patch_super_save_user(email: str, username: str):
 
     mock_user = User(email=email, username=username)
     mock_user.pk = 1
-    mock_user.save = MagicMock()
+    object.__setattr__(mock_user, "save", MagicMock())
     return patch.object(
         AutoAdminSocialAccountAdapter.__bases__[0],
         "save_user",
@@ -478,3 +479,79 @@ def describe_pre_social_login():
         user.refresh_from_db()
         assert user.is_staff is True
         assert user.is_superuser is True
+
+
+def _make_request_with_user(rf: RequestFactory, *, is_staff: bool, is_superuser: bool) -> object:
+    """Create a GET request with an attached user having the given flags."""
+    request = rf.get("/accounts/google/login/callback/")
+    user = MagicMock()
+    user.is_staff = is_staff
+    user.is_superuser = is_superuser
+    request.user = user
+    return request
+
+
+def describe_AdminRedirectAccountAdapter():
+    def describe_get_login_redirect_url():
+        def it_redirects_staff_to_admin(rf):
+            from newplos.adapters import AdminRedirectAccountAdapter
+
+            adapter = AdminRedirectAccountAdapter()
+            request = _make_request_with_user(rf, is_staff=True, is_superuser=False)
+
+            url = adapter.get_login_redirect_url(request)
+
+            assert url == "/admin/"
+
+        def it_redirects_non_staff_to_default(rf):
+            from newplos.adapters import AdminRedirectAccountAdapter
+
+            adapter = AdminRedirectAccountAdapter()
+            request = _make_request_with_user(rf, is_staff=False, is_superuser=False)
+
+            url = adapter.get_login_redirect_url(request)
+
+            assert url == "/"
+
+        def it_redirects_staff_superuser_to_admin(rf):
+            from newplos.adapters import AdminRedirectAccountAdapter
+
+            adapter = AdminRedirectAccountAdapter()
+            request = _make_request_with_user(rf, is_staff=True, is_superuser=True)
+
+            url = adapter.get_login_redirect_url(request)
+
+            assert url == "/admin/"
+
+        def it_redirects_superuser_without_staff_to_default(rf):
+            from newplos.adapters import AdminRedirectAccountAdapter
+
+            adapter = AdminRedirectAccountAdapter()
+            request = _make_request_with_user(rf, is_staff=False, is_superuser=True)
+
+            url = adapter.get_login_redirect_url(request)
+
+            assert url == "/"
+
+        def describe_custom_login_redirect_url():
+            @override_settings(LOGIN_REDIRECT_URL="/dashboard/")
+            def it_respects_custom_url_for_non_staff(rf):
+                from newplos.adapters import AdminRedirectAccountAdapter
+
+                adapter = AdminRedirectAccountAdapter()
+                request = _make_request_with_user(rf, is_staff=False, is_superuser=False)
+
+                url = adapter.get_login_redirect_url(request)
+
+                assert url == "/dashboard/"
+
+            @override_settings(LOGIN_REDIRECT_URL="/dashboard/")
+            def it_ignores_custom_url_for_staff(rf):
+                from newplos.adapters import AdminRedirectAccountAdapter
+
+                adapter = AdminRedirectAccountAdapter()
+                request = _make_request_with_user(rf, is_staff=True, is_superuser=False)
+
+                url = adapter.get_login_redirect_url(request)
+
+                assert url == "/admin/"

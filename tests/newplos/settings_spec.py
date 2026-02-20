@@ -555,3 +555,23 @@ def describe_socialaccount_adapter_setting():
                 {"DJANGO_DEBUG": "True", "SENTRY_DSN": None},
             )
             assert settings_module.SOCIALACCOUNT_ADAPTER == "newplos.adapters.AutoAdminSocialAccountAdapter"
+
+
+def describe_account_adapter_setting():
+    def it_points_to_admin_redirect_adapter(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {"DJANGO_DEBUG": "True", "SENTRY_DSN": None},
+            )
+            assert settings_module.ACCOUNT_ADAPTER == "newplos.adapters.AdminRedirectAccountAdapter"
+
+
+def describe_socialaccount_login_on_get():
+    def it_is_enabled(monkeypatch):
+        with patch("sentry_sdk.init"):
+            settings_module = _reload_settings(
+                monkeypatch,
+                {"DJANGO_DEBUG": "True", "SENTRY_DSN": None},
+            )
+            assert settings_module.SOCIALACCOUNT_LOGIN_ON_GET is True

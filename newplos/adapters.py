@@ -2,6 +2,7 @@
 
 import logging
 
+from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.conf import settings
 from django.http import HttpRequest
@@ -64,3 +65,12 @@ class AutoAdminSocialAccountAdapter(DefaultSocialAccountAdapter):
             user.is_superuser = True  # type: ignore[attr-defined]
             user.save(update_fields=["is_staff", "is_superuser"])  # type: ignore[attr-defined]
             logger.info("Auto-admin granted to %s (domain: %s)", email, domain)
+
+
+class AdminRedirectAccountAdapter(DefaultAccountAdapter):
+    """Redirect staff users to /admin/ after login when no explicit next URL is set."""
+
+    def get_login_redirect_url(self, request: HttpRequest) -> str:
+        if request.user.is_staff:
+            return "/admin/"
+        return super().get_login_redirect_url(request)
