@@ -4,16 +4,24 @@
 {% block title %}Sign Up - Past Lives{% endblock %}
 
 {% block content %}
-<h1>Sign Up</h1>
-{% element form form=form method="POST" action=action %}
-    {% csrf_token %}
-    {% slot body %}
-        {% for field in form %}
-            {% element field field=field %}{% endelement %}
-        {% endfor %}
-    {% endslot %}
-    {% slot actions %}
-        <button type="submit">Sign Up</button>
-    {% endslot %}
-{% endelement %}
+<div class="auth-page">
+    <h1 class="auth-page__title">Join the Community</h1>
+    <p class="auth-page__subtitle">Create your Past Lives account</p>
+    <div class="auth-card">
+        {% element form form=form method="POST" action=action %}
+            {% csrf_token %}
+            {% slot body %}
+                {% for field in form %}
+                    {% element field field=field %}{% endelement %}
+                {% endfor %}
+            {% endslot %}
+            {% slot actions %}
+                <button type="submit" class="btn btn--primary btn--full">Sign Up</button>
+            {% endslot %}
+        {% endelement %}
+        <div class="auth-links">
+            <p>Already have an account? <a href="{% url 'account_login' %}">Log in</a></p>
+        </div>
+    </div>
+</div>
 {% endblock %}

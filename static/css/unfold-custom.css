@@ -1,13 +1,21 @@
-/* Past Lives Makerspace - Unfold admin custom styles */
+/* Past Lives Makerspace - Unfold admin custom styles
+ *
+ * Brand fonts: Kazimir (Bold) / Supria Sans (Light)
+ * Web substitutes: Playfair Display / Lato (via Google Fonts)
+ *
+ * Color Palette:
+ *   Primary:   Matte Navy #092E4C, Soft Blue #96ACBB
+ *   Secondary: Tuscan Yellow #EEB44B, PL Black #1D1E1E, PL Cream #F4EFDD
+ */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Lato:wght@300;400;700&display=swap');
 
-/* Heading font: Playfair Display */
+/* Heading font: Playfair Display (substitute for Kazimir Bold) */
 h1, h2, h3, h4, h5, h6,
 .font-semibold {
     font-family: 'Playfair Display', serif;
 }
 
-/* Body font: Lato */
+/* Body font: Lato (substitute for Supria Sans Light) */
 body,
 input,
 select,
@@ -17,13 +25,13 @@ button,
     font-family: 'Lato', sans-serif;
 }
 
-/* Google sign-in button hover */
+/* Google sign-in button - Tuscan Yellow accent */
 .google-signin-btn {
-    background-color: #eeb44b;
-    color: #1a1a1a;
+    background-color: #EEB44B;
+    color: #092E4C;
     transition: background-color 0.2s ease;
 }
 
 .google-signin-btn:hover {
-    background-color: #d9a243;
+    background-color: #d4a043;
 }
