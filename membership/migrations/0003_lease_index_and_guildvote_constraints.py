@@ -4,27 +4,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('contenttypes', '0002_remove_content_type_name'),
-        ('membership', '0002_schema_updates_for_csv_import'),
+        ("contenttypes", "0002_remove_content_type_name"),
+        ("membership", "0002_schema_updates_for_csv_import"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='guildvote',
+            name="guildvote",
             unique_together=set(),
         ),
         migrations.AddIndex(
-            model_name='lease',
-            index=models.Index(fields=['content_type', 'object_id'], name='membership__content_bf1c0b_idx'),
+            model_name="lease",
+            index=models.Index(fields=["content_type", "object_id"], name="membership__content_bf1c0b_idx"),
         ),
         migrations.AddConstraint(
-            model_name='guildvote',
-            constraint=models.UniqueConstraint(fields=('member', 'priority'), name='unique_member_priority'),
+            model_name="guildvote",
+            constraint=models.UniqueConstraint(fields=("member", "priority"), name="unique_member_priority"),
         ),
         migrations.AddConstraint(
-            model_name='guildvote',
-            constraint=models.UniqueConstraint(fields=('member', 'guild'), name='unique_member_guild'),
+            model_name="guildvote",
+            constraint=models.UniqueConstraint(fields=("member", "guild"), name="unique_member_guild"),
         ),
     ]
