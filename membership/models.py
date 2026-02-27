@@ -182,6 +182,9 @@ class Member(models.Model):
 
 
 class Guild(models.Model):
+    # Queryset annotation (set by GuildAdmin.get_queryset)
+    sublet_count: int
+
     name = models.CharField(max_length=255, unique=True)
     guild_lead = models.ForeignKey(
         Member,
