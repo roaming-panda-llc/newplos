@@ -5,15 +5,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('membership', '0003_lease_index_and_guildvote_constraints'),
+        ("membership", "0003_lease_index_and_guildvote_constraints"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='space',
-            name='sublet_guild',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='sublets', to='membership.guild'),
+            model_name="space",
+            name="sublet_guild",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="sublets",
+                to="membership.guild",
+            ),
         ),
     ]

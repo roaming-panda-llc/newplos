@@ -90,19 +90,13 @@ class SubletInline(TabularInline):
     readonly_fields = ["space_id", "name", "space_type", "full_price_display"]
     extra = 0
 
-    def has_add_permission(
-        self, request: HttpRequest, obj: Guild | None = None
-    ) -> bool:
+    def has_add_permission(self, request: HttpRequest, obj: Guild | None = None) -> bool:
         return False
 
-    def has_change_permission(
-        self, request: HttpRequest, obj: Guild | None = None
-    ) -> bool:
+    def has_change_permission(self, request: HttpRequest, obj: Guild | None = None) -> bool:
         return False
 
-    def has_delete_permission(
-        self, request: HttpRequest, obj: Guild | None = None
-    ) -> bool:
+    def has_delete_permission(self, request: HttpRequest, obj: Guild | None = None) -> bool:
         return False
 
     @admin.display(description="Full Price")
