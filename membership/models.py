@@ -210,6 +210,21 @@ class Guild(models.Model):
     def active_leases(self) -> models.QuerySet[Lease]:
         return self.leases.filter(_active_lease_q())
 
+    @property
+    def sublet_revenue(self) -> Decimal:
+        """Sum of monthly_rent from active leases on spaces sublet to this guild."""
+        total = Lease.objects.filter(
+            _active_lease_q(),
+            space__sublet_guild=self,
+        ).aggregate(
+            total=Coalesce(
+                Sum("monthly_rent", output_field=DecimalField()),
+                Value(Decimal("0.00")),
+                output_field=DecimalField(),
+            ),
+        )["total"]
+        return total
+
 
 class GuildVote(models.Model):
     """Members vote for 3 guilds in priority order."""
@@ -290,6 +305,13 @@ class Space(models.Model):
     )
     photo = models.ImageField(upload_to="spaces/", blank=True)
     floorplan_ref = models.CharField(max_length=100, blank=True)
+    sublet_guild = models.ForeignKey(
+        "Guild",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="sublets",
+    )
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
