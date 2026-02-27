@@ -52,6 +52,9 @@ INSTALLED_APPS = [
     # Project apps
     "core",
     "membership",
+    # WebPush integration (django-webpush)
+    # WEBPUSH_SETTINGS configured below; do not commit private keys
+    "webpush",
 ]
 
 MIDDLEWARE = [
@@ -64,6 +67,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "plfog.service_worker_middleware.ServiceWorkerAllowedMiddleware",
 ]
 
 ROOT_URLCONF = "plfog.urls"
@@ -120,6 +124,13 @@ STORAGES = {
 }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Django WebPush settings (VAPID keys should be configured via environment in production)
+WEBPUSH_SETTINGS = {
+    "VAPID_PUBLIC_KEY": "BKdEA6fn519zYX9Q2jVenOpOgdksw5yJ2-5RPDktPD60ITLtz3gu5zlNc3UqQSO0_MzuXk9VAVclCzP0M2_6OUE",
+    "VAPID_PRIVATE_KEY": os.environ.get("WEBPUSH_VAPID_PRIVATE_KEY"),
+    "VAPID_ADMIN_EMAIL": "admin@pastlivesmakerspace.com",
+}
 
 # Django Sites
 SITE_ID = 1
