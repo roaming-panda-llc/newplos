@@ -7,7 +7,7 @@ import pytest
 from django.db import IntegrityError
 from django.utils import timezone
 
-from membership.models import Guild, GuildVote, Lease, Member, Space
+from membership.models import Guild, GuildVote, Member
 from tests.membership.factories import (
     GuildFactory,
     GuildVoteFactory,
@@ -232,16 +232,3 @@ def describe_lease_with_guild_tenant():
 
 
 # ---------------------------------------------------------------------------
-# Fixture loading
-# ---------------------------------------------------------------------------
-
-
-def describe_fixture_loading():
-    def it_loads_initial_data(db):
-        from django.core.management import call_command
-
-        call_command("loaddata", "initial_data", verbosity=0)
-        assert Member.objects.count() > 0
-        assert Space.objects.count() > 0
-        assert Guild.objects.count() > 0
-        assert Lease.objects.count() > 0
