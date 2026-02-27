@@ -91,6 +91,21 @@ def describe_member():
 
 
 @pytest.mark.django_db
+def describe_member_optional_fields():
+    def it_allows_blank_email():
+        member = MemberFactory(email="")
+        assert member.email == ""
+
+    def it_allows_null_join_date():
+        member = MemberFactory(join_date=None)
+        assert member.join_date is None
+
+    def it_stores_billing_name():
+        member = MemberFactory(billing_name="Test Billing")
+        assert member.billing_name == "Test Billing"
+
+
+@pytest.mark.django_db
 def describe_member_computed_properties():
     def it_calculates_membership_monthly_dues():
         plan = MembershipPlanFactory(monthly_price=Decimal("250.00"))
@@ -106,13 +121,13 @@ def describe_member_computed_properties():
         space_b = SpaceFactory(space_id="S-B")
 
         LeaseFactory(
-            member=member,
+            tenant_obj=member,
             space=space_a,
             monthly_rent=Decimal("300.00"),
             start_date=today - timedelta(days=10),
         )
         LeaseFactory(
-            member=member,
+            tenant_obj=member,
             space=space_b,
             monthly_rent=Decimal("150.00"),
             start_date=today - timedelta(days=5),
@@ -131,7 +146,7 @@ def describe_member_computed_properties():
 
         space = SpaceFactory(space_id="S-TMS")
         LeaseFactory(
-            member=member,
+            tenant_obj=member,
             space=space,
             monthly_rent=Decimal("100.00"),
             start_date=today - timedelta(days=10),
@@ -152,18 +167,18 @@ def describe_member_leases_and_spaces():
             space_future = SpaceFactory(space_id="S-FUT")
 
             active_lease = LeaseFactory(
-                member=member,
+                tenant_obj=member,
                 space=space_active,
                 start_date=today - timedelta(days=30),
             )
             LeaseFactory(
-                member=member,
+                tenant_obj=member,
                 space=space_ended,
                 start_date=today - timedelta(days=60),
                 end_date=today - timedelta(days=1),
             )
             LeaseFactory(
-                member=member,
+                tenant_obj=member,
                 space=space_future,
                 start_date=today + timedelta(days=30),
             )
@@ -177,7 +192,7 @@ def describe_member_leases_and_spaces():
             today = timezone.now().date()
             space = SpaceFactory(space_id="S-ONG")
             ongoing = LeaseFactory(
-                member=member,
+                tenant_obj=member,
                 space=space,
                 start_date=today - timedelta(days=10),
                 end_date=None,
@@ -193,7 +208,7 @@ def describe_member_leases_and_spaces():
 
             space = SpaceFactory(space_id="S-CUR")
             LeaseFactory(
-                member=member,
+                tenant_obj=member,
                 space=space,
                 start_date=today - timedelta(days=10),
             )
@@ -244,6 +259,33 @@ def describe_space():
             )
             assert space.full_price is None
 
+        def it_uses_default_rate_when_rate_per_sqft_is_none():
+            space = SpaceFactory(size_sqft=Decimal("100"), rate_per_sqft=None)
+            assert space.full_price == Decimal("375.00")  # 100 * 3.75
+
+        def it_uses_custom_rate_per_sqft_when_set():
+            space = SpaceFactory(size_sqft=Decimal("100"), rate_per_sqft=Decimal("4.00"))
+            assert space.full_price == Decimal("400.00")  # 100 * 4.00
+
+        def it_prefers_manual_price_over_rate_per_sqft():
+            space = SpaceFactory(
+                size_sqft=Decimal("100"),
+                rate_per_sqft=Decimal("4.00"),
+                manual_price=Decimal("500.00"),
+            )
+            assert space.full_price == Decimal("500.00")
+
+
+@pytest.mark.django_db
+def describe_space_is_rentable():
+    def it_defaults_to_true():
+        space = SpaceFactory()
+        assert space.is_rentable is True
+
+    def it_can_be_set_to_false():
+        space = SpaceFactory(is_rentable=False)
+        assert space.is_rentable is False
+
 
 @pytest.mark.django_db
 def describe_space_vacancy_value():
@@ -283,7 +325,7 @@ def describe_space_occupants_and_revenue():
             space = SpaceFactory(space_id="S-OCC")
 
             LeaseFactory(
-                member=member,
+                tenant_obj=member,
                 space=space,
                 start_date=today - timedelta(days=10),
             )
@@ -299,7 +341,7 @@ def describe_space_occupants_and_revenue():
             space = SpaceFactory(space_id="S-OC2")
 
             LeaseFactory(
-                member=member,
+                tenant_obj=member,
                 space=space,
                 start_date=today - timedelta(days=60),
                 end_date=today - timedelta(days=1),
@@ -317,13 +359,13 @@ def describe_space_occupants_and_revenue():
             space = SpaceFactory(space_id="S-REV", manual_price=Decimal("600.00"))
 
             LeaseFactory(
-                member=member_a,
+                tenant_obj=member_a,
                 space=space,
                 monthly_rent=Decimal("300.00"),
                 start_date=today - timedelta(days=10),
             )
             LeaseFactory(
-                member=member_b,
+                tenant_obj=member_b,
                 space=space,
                 monthly_rent=Decimal("200.00"),
                 start_date=today - timedelta(days=5),
@@ -345,7 +387,7 @@ def describe_space_occupants_and_revenue():
             today = timezone.now().date()
 
             LeaseFactory(
-                member=member,
+                tenant_obj=member,
                 space=space,
                 monthly_rent=Decimal("400.00"),
                 start_date=today - timedelta(days=5),
@@ -379,7 +421,7 @@ def describe_lease():
         )
         space = SpaceFactory(space_id="L-100", name="Main")
         lease = LeaseFactory(
-            member=member,
+            tenant_obj=member,
             space=space,
             start_date=date(2024, 3, 1),
         )
@@ -393,6 +435,27 @@ def describe_lease():
     def it_allows_null_committed_until():
         lease = LeaseFactory()
         assert lease.committed_until is None
+
+    def describe_new_fields():
+        def it_stores_discount_reason():
+            lease = LeaseFactory(discount_reason="Annual discount 10%")
+            assert lease.discount_reason == "Annual discount 10%"
+
+        def it_stores_is_split():
+            lease = LeaseFactory(is_split=True)
+            assert lease.is_split is True
+
+        def it_defaults_is_split_to_false():
+            lease = LeaseFactory()
+            assert lease.is_split is False
+
+        def it_stores_prepaid_through():
+            lease = LeaseFactory(prepaid_through=date(2025, 12, 31))
+            assert lease.prepaid_through == date(2025, 12, 31)
+
+        def it_allows_null_prepaid_through():
+            lease = LeaseFactory()
+            assert lease.prepaid_through is None
 
 
 @pytest.mark.django_db
