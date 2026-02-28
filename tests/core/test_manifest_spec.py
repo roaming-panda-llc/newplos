@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 
-def describe_manifest_json():
+def describe_manifest_json():  # noqa: C901
     """Tests for PWA manifest.json file contents."""
 
     @pytest.fixture()

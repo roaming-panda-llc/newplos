@@ -67,7 +67,7 @@ def describe_vapid_key_view():
 # ---------------------------------------------------------------------------
 
 
-def describe_subscribe_view():
+def describe_subscribe_view():  # noqa: C901
     """Tests for the push subscription endpoint."""
 
     @pytest.fixture()
@@ -230,7 +230,7 @@ def describe_subscribe_view():
 # ---------------------------------------------------------------------------
 
 
-def describe_unsubscribe_view():
+def describe_unsubscribe_view():  # noqa: C901
     """Tests for the push unsubscription endpoint."""
 
     @pytest.fixture()
