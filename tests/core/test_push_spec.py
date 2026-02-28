@@ -222,7 +222,7 @@ def describe_subscribe_view():  # noqa: C901
                 content_type="application/json",
             )
         assert response.status_code == 500
-        assert response.json() == {"error": "Database error"}
+        assert response.json() == {"error": "Subscription failed. Please try again."}
 
 
 # ---------------------------------------------------------------------------
@@ -375,7 +375,7 @@ def describe_unsubscribe_view():  # noqa: C901
                 content_type="application/json",
             )
         assert response.status_code == 500
-        assert response.json() == {"error": "Database connection lost"}
+        assert response.json() == {"error": "Unsubscription failed. Please try again."}
 
 
 def describe_push_subscription_model():
