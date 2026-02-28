@@ -85,6 +85,8 @@ def subscribe(request):
 
         return JsonResponse({"success": True})
 
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
     except Exception:
         logger.exception("Push subscription failed")
         return JsonResponse({"error": "Subscription failed. Please try again."}, status=500)
@@ -111,6 +113,8 @@ def unsubscribe(request):
 
         return JsonResponse({"success": True})
 
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
     except Exception:
         logger.exception("Push unsubscription failed")
         return JsonResponse({"error": "Unsubscription failed. Please try again."}, status=500)
