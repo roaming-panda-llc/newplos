@@ -435,6 +435,7 @@ def describe_service_worker_view():
         # Temporarily move sw.js
         import shutil
         from pathlib import Path
+
         sw_path = Path(__file__).parent.parent.parent / "static" / "js" / "sw.js"
         backup_path = sw_path.with_suffix(".js.bak")
         if sw_path.exists():

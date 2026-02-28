@@ -43,6 +43,7 @@ def service_worker(request):
     response["Service-Worker-Allowed"] = "/"
     return response
 
+
 @require_GET
 @login_required
 def vapid_key(request):
@@ -84,11 +85,9 @@ def subscribe(request):
 
         return JsonResponse({"success": True})
 
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
-    except Exception as e:
+    except Exception:
         logger.exception("Push subscription failed")
-        return JsonResponse({"error": str(e)}, status=500)
+        return JsonResponse({"error": "Subscription failed. Please try again."}, status=500)
 
 
 @require_POST
@@ -112,8 +111,6 @@ def unsubscribe(request):
 
         return JsonResponse({"success": True})
 
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
-    except Exception as e:
+    except Exception:
         logger.exception("Push unsubscription failed")
-        return JsonResponse({"error": str(e)}, status=500)
+        return JsonResponse({"error": "Unsubscription failed. Please try again."}, status=500)

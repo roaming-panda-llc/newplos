@@ -52,9 +52,6 @@ INSTALLED_APPS = [
     # Project apps
     "core",
     "membership",
-    # WebPush integration (django-webpush)
-    # WEBPUSH_SETTINGS configured below; do not commit private keys
-    "webpush",
 ]
 
 MIDDLEWARE = [
@@ -125,11 +122,12 @@ STORAGES = {
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Django WebPush settings (VAPID keys should be configured via environment in production)
+# Django WebPush settings - MUST be configured via environment variables
+# These will raise KeyError if not set when accessed
 WEBPUSH_SETTINGS = {
-    "VAPID_PUBLIC_KEY": "BKdEA6fn519zYX9Q2jVenOpOgdksw5yJ2-5RPDktPD60ITLtz3gu5zlNc3UqQSO0_MzuXk9VAVclCzP0M2_6OUE",
-    "VAPID_PRIVATE_KEY": os.environ.get("WEBPUSH_VAPID_PRIVATE_KEY"),
-    "VAPID_ADMIN_EMAIL": "admin@pastlivesmakerspace.com",
+    "VAPID_PUBLIC_KEY": os.environ["WEBPUSH_VAPID_PUBLIC_KEY"],
+    "VAPID_PRIVATE_KEY": os.environ["WEBPUSH_VAPID_PRIVATE_KEY"],
+    "VAPID_ADMIN_EMAIL": os.environ["WEBPUSH_VAPID_ADMIN_EMAIL"],
 }
 
 # Django Sites

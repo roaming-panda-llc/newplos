@@ -44,9 +44,13 @@
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
           navigator.serviceWorker.register('/sw.js').then(function(registration) {
+            {% if debug %}
             console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            {% endif %}
           }).catch(function(error) {
+            {% if debug %}
             console.log('ServiceWorker registration failed: ', error);
+            {% endif %}
           });
         });
       }
