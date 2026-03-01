@@ -131,7 +131,7 @@ if os.environ.get("CI"):
         "VAPID_PRIVATE_KEY": "UUxI4O8-FbRouAf7-7OT9l1E3_5N9K1L2B3",
         "VAPID_ADMIN_EMAIL": "ci@test.example.com",
     }
-else:
+else:  # pragma: no cover
     # Production: require real configuration
     WEBPUSH_SETTINGS = {
         "VAPID_PUBLIC_KEY": os.environ["WEBPUSH_VAPID_PUBLIC_KEY"],
