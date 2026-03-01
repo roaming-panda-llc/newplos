@@ -6,3 +6,8 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("", include("core.urls")),
 ]
+
+try:
+    urlpatterns += [path("stripe/", include("djstripe.urls", namespace="djstripe"))]
+except Exception:
+    pass
