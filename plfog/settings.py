@@ -52,6 +52,13 @@ INSTALLED_APPS = [
     # Project apps
     "core",
     "membership",
+    "billing",
+    "tools",
+    "education",
+    "outreach",
+    # Third-party (after project apps)
+    "guardian",
+    "djstripe",
 ]
 
 MIDDLEWARE = [
@@ -128,6 +135,7 @@ SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
+    "guardian.backends.ObjectPermissionBackend",
 ]
 
 # Allauth (v65+ format)
@@ -266,6 +274,8 @@ UNFOLD = {
     "SIDEBAR": {
         "show_search": True,
         "show_all_applications": True,
+        # TODO (Task 12): Expand navigation to include all app sections
+        # (billing, tools, education, outreach) once those models are created.
         "navigation": [
             {
                 "title": "Navigation",
@@ -315,3 +325,13 @@ UNFOLD = {
         ],
     },
 }
+
+# django-guardian
+ANONYMOUS_USER_NAME = None
+
+# Stripe (dj-stripe)
+STRIPE_LIVE_SECRET_KEY = os.environ.get("STRIPE_LIVE_SECRET_KEY", "")
+STRIPE_TEST_SECRET_KEY = os.environ.get("STRIPE_TEST_SECRET_KEY", "")
+STRIPE_LIVE_MODE = os.environ.get("STRIPE_LIVE_MODE", "False").lower() == "true"
+DJSTRIPE_WEBHOOK_SECRET = os.environ.get("DJSTRIPE_WEBHOOK_SECRET", "")
+DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
