@@ -7,7 +7,7 @@ class ServiceWorkerAllowedMiddleware:
     """
     Add Service-Worker-Allowed header for service worker requests.
 
-    This allows the service worker at /static/js/sw.js to control the entire
+    This allows the service worker at /sw.js to control the entire
     application (scope '/') rather than just /static/js/* paths.
 
     This middleware is NOT redundant with the vapid_key view - they serve different purposes:
@@ -22,7 +22,7 @@ class ServiceWorkerAllowedMiddleware:
         response = self.get_response(request)
 
         # Add header for service worker file to allow root scope
-        if request.path == "/static/js/sw.js":
+        if request.path == "/sw.js":
             response["Service-Worker-Allowed"] = "/"
 
         return response

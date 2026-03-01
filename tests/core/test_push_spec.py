@@ -405,8 +405,7 @@ def describe_service_worker_middleware():
 
     def it_adds_header_for_service_worker_request(client):
         """Test middleware adds Service-Worker-Allowed header for sw.js."""
-        response = client.get("/static/js/sw.js")
-        # The header should be added even if the file doesn't exist in tests
+        response = client.get("/sw.js")
         assert response.get("Service-Worker-Allowed") == "/"
 
     def it_does_not_add_header_for_other_requests(client):
