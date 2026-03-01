@@ -886,8 +886,7 @@ class Command(BaseCommand):
             ToolReservation.objects.get_or_create(
                 tool=tool,
                 user=user,
-                starts_at=starts,
-                defaults={"ends_at": ends, "status": status},
+                defaults={"starts_at": starts, "ends_at": ends, "status": status},
             )
             count += 1
         self.stdout.write(self.style.SUCCESS(f"Seeded {count} tool reservations"))
@@ -1029,8 +1028,7 @@ class Command(BaseCommand):
             Rental.objects.get_or_create(
                 rentable=rentable,
                 user=user,
-                checked_out_at=checked_out,
-                defaults={"due_at": due, "status": status, "order": order},
+                defaults={"checked_out_at": checked_out, "due_at": due, "status": status, "order": order},
             )
             count += 1
         self.stdout.write(self.style.SUCCESS(f"Seeded {count} rentals"))
@@ -1227,8 +1225,8 @@ class Command(BaseCommand):
             MemberSubscription.objects.get_or_create(
                 user=user,
                 subscription_plan=plan,
-                starts_at=starts,
                 defaults={
+                    "starts_at": starts,
                     "status": status,
                     "ends_at": ends,
                     "cancelled_at": cancelled,
@@ -1521,8 +1519,7 @@ class Command(BaseCommand):
                     ScheduledOrientation.objects.get_or_create(
                         orientation=orientation,
                         user=user,
-                        scheduled_at=scheduled_at,
-                        defaults={"status": ScheduledOrientation.Status.PENDING},
+                        defaults={"scheduled_at": scheduled_at, "status": ScheduledOrientation.Status.PENDING},
                     )
             count += 1
 
@@ -1640,7 +1637,7 @@ class Command(BaseCommand):
     def _seed_tours(self) -> None:
         now = timezone.now()
         leads = list(Lead.objects.all())
-        if not leads:
+        if not leads:  # pragma: no cover
             self.stdout.write(self.style.SUCCESS("Seeded 0 tours (no leads found)"))
             return
 
@@ -1659,8 +1656,8 @@ class Command(BaseCommand):
             completed_at = scheduled_at if status == Tour.Status.COMPLETED else None
             Tour.objects.get_or_create(
                 lead=lead,
-                scheduled_at=scheduled_at,
                 defaults={
+                    "scheduled_at": scheduled_at,
                     "status": status,
                     "completion_notes": notes,
                     "completed_at": completed_at,
@@ -1729,8 +1726,8 @@ class Command(BaseCommand):
         for item in events_data:
             Event.objects.get_or_create(
                 name=item["name"],
-                starts_at=item["starts_at"],
                 defaults={
+                    "starts_at": item["starts_at"],
                     "description": item["description"],
                     "ends_at": item["ends_at"],
                     "location": item["location"],
@@ -1820,8 +1817,7 @@ class Command(BaseCommand):
             BuyablePurchase.objects.get_or_create(
                 buyable=buyable,
                 user=user,
-                purchased_at=purchased_at,
-                defaults={"quantity": qty, "order": order},
+                defaults={"purchased_at": purchased_at, "quantity": qty, "order": order},
             )
             count += 1
         self.stdout.write(self.style.SUCCESS(f"Seeded {count} buyable purchases"))

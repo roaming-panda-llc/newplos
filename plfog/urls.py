@@ -15,4 +15,4 @@ except Exception:  # pragma: no cover
     pass
 
 if django_settings.DEBUG:  # pragma: no cover
-    urlpatterns += static(django_settings.MEDIA_URL, document_root=django_settings.MEDIA_ROOT)
+    urlpatterns += static(django_settings.MEDIA_URL, document_root=django_settings.MEDIA_ROOT)  # type: ignore[arg-type]
