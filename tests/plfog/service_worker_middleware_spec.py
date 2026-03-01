@@ -15,6 +15,10 @@ def describe_service_worker_allowed_middleware():
     def it_adds_service_worker_allowed_header_for_sw_js(client):
         """Test that requesting /static/js/sw.js adds the Service-Worker-Allowed header."""
         response = client.get("/static/js/sw.js")
+        # File may not exist in test env, but header should still be added
+        assert response["Service-Worker-Allowed"] == "/"
+        """Test that requesting /static/js/sw.js adds the Service-Worker-Allowed header."""
+        response = client.get("/static/js/sw.js")
         assert response.status_code == 200
         assert response["Service-Worker-Allowed"] == "/"
 
