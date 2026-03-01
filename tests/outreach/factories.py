@@ -7,7 +7,6 @@ from django.utils import timezone
 
 from outreach.models import Buyable, BuyablePurchase, Event, Lead, Tour
 from tests.core.factories import UserFactory
-from tests.membership.factories import GuildFactory
 
 
 class LeadFactory(factory.django.DjangoModelFactory):

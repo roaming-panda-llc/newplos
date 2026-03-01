@@ -120,9 +120,7 @@ class Buyable(models.Model):
 
 class BuyablePurchase(models.Model):
     buyable = models.ForeignKey(Buyable, on_delete=models.CASCADE, related_name="purchases")
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="buyable_purchases"
-    )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="buyable_purchases")
     quantity = models.PositiveIntegerField(default=1)
     order = models.ForeignKey(
         "billing.Order", null=True, blank=True, on_delete=models.SET_NULL, related_name="buyable_purchases"

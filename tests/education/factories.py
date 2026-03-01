@@ -6,7 +6,15 @@ from decimal import Decimal
 import factory
 from django.utils import timezone
 
-from education.models import ClassDiscountCode, ClassImage, ClassSession, MakerClass, Orientation, ScheduledOrientation, Student
+from education.models import (
+    ClassDiscountCode,
+    ClassImage,
+    ClassSession,
+    MakerClass,
+    Orientation,
+    ScheduledOrientation,
+    Student,
+)
 from tests.core.factories import UserFactory
 from tests.membership.factories import GuildFactory
 

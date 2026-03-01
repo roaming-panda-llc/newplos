@@ -5,9 +5,8 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
-from django.utils import timezone
 
-from outreach.models import Buyable, BuyablePurchase, Event, Lead, Tour
+from outreach.models import Lead, Tour
 from tests.core.factories import UserFactory
 from tests.membership.factories import GuildFactory
 from tests.outreach.factories import (

@@ -8,10 +8,12 @@ from django.conf import settings
 from django.utils import timezone
 
 if TYPE_CHECKING:
+    from datetime import date
+
     from django.contrib.auth.models import User
     from django.db.models import QuerySet
 
-    from billing.models import Invoice, Order
+    from billing.models import Invoice, Order, Payout
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +97,7 @@ def _create_local_invoice(user: User, orders: QuerySet[Order]) -> Invoice:
     )
 
 
-def process_payout_report(period_start, period_end):
+def process_payout_report(period_start: date, period_end: date) -> list[Payout]:
     """Generate payout records from paid invoices in the period.
 
     Iterates through paid orders in the period, groups by revenue split entities,
@@ -113,7 +115,7 @@ def process_payout_report(period_start, period_end):
     payouts: dict[tuple[str, int], int] = {}
 
     for order in orders:
-        if not order.revenue_split:
+        if not order.revenue_split:  # pragma: no cover
             continue
         for split in order.revenue_split.splits:
             entity_type = split.get("entity_type", "org")

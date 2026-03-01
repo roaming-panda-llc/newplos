@@ -137,9 +137,7 @@ class Student(models.Model):
 
 
 class Orientation(models.Model):
-    guild = models.ForeignKey(
-        "membership.Guild", on_delete=models.CASCADE, related_name="orientations"
-    )
+    guild = models.ForeignKey("membership.Guild", on_delete=models.CASCADE, related_name="orientations")
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     duration_minutes = models.PositiveIntegerField()
@@ -153,9 +151,7 @@ class Orientation(models.Model):
     )
     is_active = models.BooleanField(default=True)
     tools = models.ManyToManyField("tools.Tool", blank=True, related_name="orientations")
-    orienters = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, blank=True, related_name="authorized_orientations"
-    )
+    orienters = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="authorized_orientations")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -178,12 +174,8 @@ class ScheduledOrientation(models.Model):
         COMPLETED = "completed", "Completed"
         CANCELLED = "cancelled", "Cancelled"
 
-    orientation = models.ForeignKey(
-        Orientation, on_delete=models.CASCADE, related_name="scheduled"
-    )
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="scheduled_orientations"
-    )
+    orientation = models.ForeignKey(Orientation, on_delete=models.CASCADE, related_name="scheduled")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="scheduled_orientations")
     scheduled_at = models.DateTimeField()
     claimed_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

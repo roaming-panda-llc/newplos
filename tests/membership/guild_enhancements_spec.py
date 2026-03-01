@@ -7,7 +7,6 @@ from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from django.test import Client
 
-from membership.models import Guild, GuildDocument, GuildMembership, GuildWishlistItem
 from tests.membership.factories import (
     GuildDocumentFactory,
     GuildFactory,

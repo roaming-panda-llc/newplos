@@ -33,8 +33,7 @@ class Command(BaseCommand):
                 billed_count += 1
                 self.stdout.write(
                     self.style.SUCCESS(
-                        f"Billed {user.username}: {order_count} orders, "
-                        f"total ${invoice.amount_due / 100:.2f}"
+                        f"Billed {user.username}: {order_count} orders, total ${invoice.amount_due / 100:.2f}"
                     )
                 )
             else:

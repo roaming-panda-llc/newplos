@@ -111,9 +111,7 @@ class Rental(models.Model):
     due_at = models.DateTimeField()
     returned_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
-    order = models.ForeignKey(
-        "billing.Order", null=True, blank=True, on_delete=models.SET_NULL, related_name="rentals"
-    )
+    order = models.ForeignKey("billing.Order", null=True, blank=True, on_delete=models.SET_NULL, related_name="rentals")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

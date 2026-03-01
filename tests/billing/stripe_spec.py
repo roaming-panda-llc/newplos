@@ -10,9 +10,14 @@ import stripe as stripe_lib
 from django.core.management import call_command
 from django.utils import timezone
 
-from billing.models import Invoice, Order
-from billing.stripe_utils import _create_local_invoice, create_invoice_for_user, get_stripe_key
-from tests.billing.factories import OrderFactory
+from billing.models import Invoice, Order, Payout
+from billing.stripe_utils import (
+    _create_local_invoice,
+    create_invoice_for_user,
+    get_stripe_key,
+    process_payout_report,
+)
+from tests.billing.factories import OrderFactory, RevenueSplitFactory
 from tests.core.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -158,7 +163,7 @@ def describe_create_invoice_for_user():
 
         with (
             patch("billing.stripe_utils.stripe.Customer") as mock_cust_cls,
-            patch("billing.stripe_utils.stripe.InvoiceItem") as mock_item_cls,
+            patch("billing.stripe_utils.stripe.InvoiceItem"),
             patch("billing.stripe_utils.stripe.Invoice") as mock_inv_cls,
         ):
             mock_cust_cls.list.return_value.data = [mock_customer]
@@ -171,6 +176,37 @@ def describe_create_invoice_for_user():
         assert invoice.stripe_invoice_id == "in_test456"
         assert invoice.amount_due == 5000
         assert invoice.pdf_url == "https://stripe.com/invoice.pdf"
+
+    def it_creates_new_stripe_customer_when_none_exists(settings):
+        settings.STRIPE_LIVE_MODE = False
+        settings.STRIPE_TEST_SECRET_KEY = "sk_test_fakekeyfortesting"
+
+        user = UserFactory()
+        order = OrderFactory(user=user, amount=3000)
+        orders = Order.objects.filter(pk=order.pk)
+
+        mock_new_customer = MagicMock()
+        mock_new_customer.id = "cus_new456"
+
+        mock_stripe_invoice = MagicMock()
+        mock_stripe_invoice.id = "in_new789"
+        mock_stripe_invoice.invoice_pdf = ""
+
+        with (
+            patch("billing.stripe_utils.stripe.Customer") as mock_cust_cls,
+            patch("billing.stripe_utils.stripe.InvoiceItem"),
+            patch("billing.stripe_utils.stripe.Invoice") as mock_inv_cls,
+        ):
+            mock_cust_cls.list.return_value.data = []  # no existing customer
+            mock_cust_cls.create.return_value = mock_new_customer
+            mock_inv_cls.create.return_value = mock_stripe_invoice
+            mock_inv_cls.finalize_invoice.return_value = mock_stripe_invoice
+
+            invoice = create_invoice_for_user(user, orders)
+
+        mock_cust_cls.create.assert_called_once()
+        assert invoice is not None
+        assert invoice.stripe_invoice_id == "in_new789"
 
 
 # ---------------------------------------------------------------------------
@@ -260,3 +296,120 @@ def describe_bill_tabs_command():
         assert invoice_count_after_first == 1
         assert invoice_count_after_second == 1
         assert "No outstanding tabs" in out.getvalue()
+
+    def it_prints_error_when_invoice_creation_fails(settings):
+        settings.STRIPE_LIVE_MODE = False
+        settings.STRIPE_TEST_SECRET_KEY = ""
+
+        user = UserFactory()
+        OrderFactory(user=user, status="on_tab", amount=1000)
+
+        with patch("billing.management.commands.bill_tabs.create_invoice_for_user", return_value=None):
+            out = StringIO()
+            call_command("bill_tabs", stdout=out)
+
+        assert f"Failed to bill {user.username}" in out.getvalue()
+
+    def it_skips_user_whose_orders_were_already_billed(settings):
+        """Cover the `continue` branch when a user's tab orders disappear between queries."""
+        settings.STRIPE_LIVE_MODE = False
+        settings.STRIPE_TEST_SECRET_KEY = ""
+
+        user = UserFactory()
+        order = OrderFactory(user=user, status="on_tab", amount=2000)
+
+        # Bill the order before the command iterates, simulating a race
+        original_filter = Order.objects.filter
+
+        call_count = {"n": 0}
+
+        def patched_filter(**kwargs):
+            qs = original_filter(**kwargs)
+            # On the per-user filter call, change order status so exists() returns False
+            if kwargs.get("user") == user and kwargs.get("status") == Order.Status.ON_TAB:
+                call_count["n"] += 1
+                if call_count["n"] == 1:
+                    order.status = Order.Status.BILLED
+                    order.save()
+            return qs
+
+        with patch.object(Order.objects, "filter", side_effect=patched_filter):
+            out = StringIO()
+            call_command("bill_tabs", stdout=out)
+
+        assert "0 users total" in out.getvalue()
+
+
+# ---------------------------------------------------------------------------
+# process_payout_report
+# ---------------------------------------------------------------------------
+
+
+def describe_process_payout_report():
+    def it_creates_payout_records_from_paid_orders():
+        user = UserFactory()
+        split = RevenueSplitFactory(
+            splits=[
+                {"entity_type": "guild", "entity_id": 1, "percentage": 70},
+                {"entity_type": "org", "entity_id": 1, "percentage": 30},
+            ],
+        )
+        today = timezone.now().date()
+        OrderFactory(
+            user=user,
+            amount=10000,
+            status="paid",
+            revenue_split=split,
+            issued_at=timezone.now(),
+        )
+
+        payouts = process_payout_report(today, today)
+
+        assert len(payouts) == 2
+        amounts = {(p.payee_type, p.payee_id): p.amount for p in payouts}
+        assert amounts[("guild", 1)] == 7000
+        assert amounts[("org", 1)] == 3000
+
+    def it_returns_empty_list_when_no_paid_orders():
+        today = timezone.now().date()
+        payouts = process_payout_report(today, today)
+        assert payouts == []
+
+    def it_aggregates_across_multiple_orders():
+        user = UserFactory()
+        split = RevenueSplitFactory(
+            splits=[{"entity_type": "org", "entity_id": 1, "percentage": 100}],
+        )
+        today = timezone.now().date()
+        OrderFactory(user=user, amount=5000, status="paid", revenue_split=split, issued_at=timezone.now())
+        OrderFactory(user=user, amount=3000, status="paid", revenue_split=split, issued_at=timezone.now())
+
+        payouts = process_payout_report(today, today)
+
+        assert len(payouts) == 1
+        assert payouts[0].amount == 8000
+
+    def it_ignores_unpaid_orders():
+        user = UserFactory()
+        split = RevenueSplitFactory(
+            splits=[{"entity_type": "org", "entity_id": 1, "percentage": 100}],
+        )
+        today = timezone.now().date()
+        OrderFactory(user=user, amount=5000, status="on_tab", revenue_split=split, issued_at=timezone.now())
+
+        payouts = process_payout_report(today, today)
+        assert payouts == []
+
+    def it_sets_payout_period_dates():
+        user = UserFactory()
+        split = RevenueSplitFactory(
+            splits=[{"entity_type": "org", "entity_id": 1, "percentage": 100}],
+        )
+        today = timezone.now().date()
+        OrderFactory(user=user, amount=5000, status="paid", revenue_split=split, issued_at=timezone.now())
+
+        payouts = process_payout_report(today, today)
+
+        assert payouts[0].period_start == today
+        assert payouts[0].period_end == today
+        assert payouts[0].status == Payout.Status.PENDING

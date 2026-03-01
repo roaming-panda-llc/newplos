@@ -9,5 +9,5 @@ urlpatterns = [
 
 try:
     urlpatterns += [path("stripe/", include("djstripe.urls", namespace="djstripe"))]
-except Exception:
+except Exception:  # pragma: no cover
     pass

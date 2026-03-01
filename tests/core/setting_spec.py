@@ -33,6 +33,12 @@ def describe_setting_model():
         result = Setting.get("lookup_key")
         assert result == {"enabled": True}
 
+    def it_get_returns_cached_value_on_second_call():
+        SettingFactory(key="cached_key", value={"cached": True}, type="json")
+        Setting.get("cached_key")  # populates cache
+        result = Setting.get("cached_key")  # hits cache (line 32)
+        assert result == {"cached": True}
+
     def it_get_returns_default_when_missing():
         result = Setting.get("nope", "fb")
         assert result == "fb"

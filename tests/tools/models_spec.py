@@ -9,7 +9,7 @@ import pytest
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 
-from tools.models import Document, Rentable, Rental, Tool, ToolReservation
+from tools.models import Rentable, Rental, Tool, ToolReservation
 from tests.core.factories import UserFactory
 from tests.membership.factories import GuildFactory
 from tests.tools.factories import (
@@ -129,7 +129,9 @@ def describe_tool_reservation():
 def describe_rentable():
     def it_has_str_representation():
         tool = ToolFactory(name="3D Printer")
-        rentable = RentableFactory(tool=tool, cost_per_period=Decimal("10.00"), rental_period=Rentable.RentalPeriod.HOURS)
+        rentable = RentableFactory(
+            tool=tool, cost_per_period=Decimal("10.00"), rental_period=Rentable.RentalPeriod.HOURS
+        )
         assert str(rentable) == "3D Printer - $10.00/hours"
 
     def it_has_formatted_cost_property():

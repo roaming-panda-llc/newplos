@@ -29,6 +29,11 @@ media/
 htmlcov/
 .pytest_cache/
 
+# Test-generated media files
+class_images/
+documents/
+guild_docs/
+
 # Type checking
 .mypy_cache/
 

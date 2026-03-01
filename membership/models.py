@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import date as date_type
 from decimal import Decimal
+from typing import Any
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
@@ -216,7 +217,7 @@ class Guild(models.Model):
     def __str__(self) -> str:
         return self.name
 
-    def save(self, *args: object, **kwargs: object) -> None:
+    def save(self, *args: Any, **kwargs: Any) -> None:
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
@@ -378,7 +379,10 @@ class ScheduleBlock(models.Model):
 
     member_schedule = models.ForeignKey(MemberSchedule, on_delete=models.CASCADE, related_name="blocks")
     day_of_week = models.IntegerField(
-        choices=[(i, name) for i, name in enumerate(["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"])]
+        choices=[
+            (i, name)
+            for i, name in enumerate(["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"])
+        ]
     )
     start_time = models.TimeField()
     end_time = models.TimeField()

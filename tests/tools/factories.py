@@ -61,4 +61,4 @@ class DocumentFactory(factory.django.DjangoModelFactory):
     file_path = factory.django.FileField(filename="test.pdf")
     uploaded_by = factory.SubFactory(UserFactory)
     content_type = factory.LazyFunction(lambda: ContentType.objects.get_for_model(Tool))
-    object_id = factory.LazyAttribute(lambda o: ToolFactory().pk)
+    object_id = factory.LazyAttribute(lambda o: ToolFactory().pk)  # type: ignore[attr-defined]
