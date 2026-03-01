@@ -274,8 +274,6 @@ UNFOLD = {
     "SIDEBAR": {
         "show_search": True,
         "show_all_applications": True,
-        # TODO (Task 12): Expand navigation to include all app sections
-        # (billing, tools, education, outreach) once those models are created.
         "navigation": [
             {
                 "title": "Navigation",
@@ -288,7 +286,7 @@ UNFOLD = {
                 ],
             },
             {
-                "title": "Makerspace",
+                "title": "Members",
                 "items": [
                     {
                         "title": "Members",
@@ -301,6 +299,16 @@ UNFOLD = {
                         "link": reverse_lazy("admin:membership_membershipplan_changelist"),
                     },
                     {
+                        "title": "Schedules",
+                        "icon": "calendar_month",
+                        "link": reverse_lazy("admin:membership_memberschedule_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Guilds",
+                "items": [
+                    {
                         "title": "Guilds",
                         "icon": "groups",
                         "link": reverse_lazy("admin:membership_guild_changelist"),
@@ -310,6 +318,11 @@ UNFOLD = {
                         "icon": "how_to_vote",
                         "link": reverse_lazy("admin:membership_guildvote_changelist"),
                     },
+                ],
+            },
+            {
+                "title": "Spaces & Leases",
+                "items": [
                     {
                         "title": "Spaces",
                         "icon": "meeting_room",
@@ -319,6 +332,126 @@ UNFOLD = {
                         "title": "Leases",
                         "icon": "description",
                         "link": reverse_lazy("admin:membership_lease_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Tools & Equipment",
+                "items": [
+                    {
+                        "title": "Tools",
+                        "icon": "build",
+                        "link": reverse_lazy("admin:tools_tool_changelist"),
+                    },
+                    {
+                        "title": "Reservations",
+                        "icon": "event_available",
+                        "link": reverse_lazy("admin:tools_toolreservation_changelist"),
+                    },
+                    {
+                        "title": "Rentables",
+                        "icon": "shopping_cart",
+                        "link": reverse_lazy("admin:tools_rentable_changelist"),
+                    },
+                    {
+                        "title": "Rentals",
+                        "icon": "receipt",
+                        "link": reverse_lazy("admin:tools_rental_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Education",
+                "items": [
+                    {
+                        "title": "Classes",
+                        "icon": "school",
+                        "link": reverse_lazy("admin:education_makerclass_changelist"),
+                    },
+                    {
+                        "title": "Students",
+                        "icon": "person",
+                        "link": reverse_lazy("admin:education_student_changelist"),
+                    },
+                    {
+                        "title": "Discount Codes",
+                        "icon": "sell",
+                        "link": reverse_lazy("admin:education_classdiscountcode_changelist"),
+                    },
+                    {
+                        "title": "Orientations",
+                        "icon": "explore",
+                        "link": reverse_lazy("admin:education_orientation_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Billing",
+                "items": [
+                    {
+                        "title": "Orders",
+                        "icon": "receipt_long",
+                        "link": reverse_lazy("admin:billing_order_changelist"),
+                    },
+                    {
+                        "title": "Invoices",
+                        "icon": "request_quote",
+                        "link": reverse_lazy("admin:billing_invoice_changelist"),
+                    },
+                    {
+                        "title": "Revenue Splits",
+                        "icon": "pie_chart",
+                        "link": reverse_lazy("admin:billing_revenuesplit_changelist"),
+                    },
+                    {
+                        "title": "Subscription Plans",
+                        "icon": "loyalty",
+                        "link": reverse_lazy("admin:billing_subscriptionplan_changelist"),
+                    },
+                    {
+                        "title": "Subscriptions",
+                        "icon": "autorenew",
+                        "link": reverse_lazy("admin:billing_membersubscription_changelist"),
+                    },
+                    {
+                        "title": "Payouts",
+                        "icon": "payments",
+                        "link": reverse_lazy("admin:billing_payout_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Outreach",
+                "items": [
+                    {
+                        "title": "Leads",
+                        "icon": "contact_mail",
+                        "link": reverse_lazy("admin:outreach_lead_changelist"),
+                    },
+                    {
+                        "title": "Tours",
+                        "icon": "tour",
+                        "link": reverse_lazy("admin:outreach_tour_changelist"),
+                    },
+                    {
+                        "title": "Events",
+                        "icon": "event",
+                        "link": reverse_lazy("admin:outreach_event_changelist"),
+                    },
+                    {
+                        "title": "Buyables",
+                        "icon": "storefront",
+                        "link": reverse_lazy("admin:outreach_buyable_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Settings",
+                "items": [
+                    {
+                        "title": "Settings",
+                        "icon": "settings",
+                        "link": reverse_lazy("admin:core_setting_changelist"),
                     },
                 ],
             },
