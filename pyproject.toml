@@ -8,7 +8,7 @@ DJANGO_SETTINGS_MODULE = "plfog.settings"
 python_files = ["*_spec.py", "test_*.py"]
 python_classes = ["Describe*"]
 python_functions = ["it_*", "test_*", "describe_*"]
-addopts = "-v --tb=short --cov=plfog --cov=core --cov=membership --cov-report=term-missing"
+addopts = "-v --tb=short --cov=plfog --cov=core --cov=membership --cov=billing --cov=tools --cov=education --cov=outreach --cov-report=term-missing"
 
 [tool.ruff]
 target-version = "py313"
@@ -20,6 +20,9 @@ extend-select = ["C901"]
 [tool.ruff.lint.mccabe]
 max-complexity = 10
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["C901"]
+
 [tool.mypy]
 python_version = "3.13"
 plugins = ["mypy_django_plugin.main"]
@@ -27,6 +30,22 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "membership.*"
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = "billing.*"
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = "tools.*"
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = "education.*"
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = "outreach.*"
 disallow_untyped_defs = true
 
 [tool.django-stubs]

@@ -52,6 +52,13 @@ INSTALLED_APPS = [
     # Project apps
     "core",
     "membership",
+    "billing",
+    "tools",
+    "education",
+    "outreach",
+    # Third-party (after project apps)
+    "guardian",
+    "djstripe",
 ]
 
 MIDDLEWARE = [
@@ -119,6 +126,10 @@ STORAGES = {
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
 
+# Media files (user uploads)
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Django Sites
@@ -128,6 +139,7 @@ SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
+    "guardian.backends.ObjectPermissionBackend",
 ]
 
 # Allauth (v65+ format)
@@ -143,6 +155,7 @@ LOGOUT_REDIRECT_URL = "/"
 SOCIALACCOUNT_ADAPTER = "plfog.adapters.AutoAdminSocialAccountAdapter"
 ACCOUNT_ADAPTER = "plfog.adapters.AdminRedirectAccountAdapter"
 SOCIALACCOUNT_LOGIN_ON_GET = True
+ALLAUTH_TRUSTED_PROXY_COUNT = int(os.environ.get("ALLAUTH_TRUSTED_PROXY_COUNT", "0"))
 
 # Auto-admin: comma-separated list of email domains that get admin privileges on social login.
 # Empty/unset means no auto-admin. Malformed values raise ValueError at startup.
@@ -278,7 +291,7 @@ UNFOLD = {
                 ],
             },
             {
-                "title": "Makerspace",
+                "title": "Members",
                 "items": [
                     {
                         "title": "Members",
@@ -291,6 +304,16 @@ UNFOLD = {
                         "link": reverse_lazy("admin:membership_membershipplan_changelist"),
                     },
                     {
+                        "title": "Schedules",
+                        "icon": "calendar_month",
+                        "link": reverse_lazy("admin:membership_memberschedule_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Guilds",
+                "items": [
+                    {
                         "title": "Guilds",
                         "icon": "groups",
                         "link": reverse_lazy("admin:membership_guild_changelist"),
@@ -300,6 +323,11 @@ UNFOLD = {
                         "icon": "how_to_vote",
                         "link": reverse_lazy("admin:membership_guildvote_changelist"),
                     },
+                ],
+            },
+            {
+                "title": "Spaces & Leases",
+                "items": [
                     {
                         "title": "Spaces",
                         "icon": "meeting_room",
@@ -312,6 +340,136 @@ UNFOLD = {
                     },
                 ],
             },
+            {
+                "title": "Tools & Equipment",
+                "items": [
+                    {
+                        "title": "Tools",
+                        "icon": "build",
+                        "link": reverse_lazy("admin:tools_tool_changelist"),
+                    },
+                    {
+                        "title": "Reservations",
+                        "icon": "event_available",
+                        "link": reverse_lazy("admin:tools_toolreservation_changelist"),
+                    },
+                    {
+                        "title": "Rentables",
+                        "icon": "shopping_cart",
+                        "link": reverse_lazy("admin:tools_rentable_changelist"),
+                    },
+                    {
+                        "title": "Rentals",
+                        "icon": "receipt",
+                        "link": reverse_lazy("admin:tools_rental_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Education",
+                "items": [
+                    {
+                        "title": "Classes",
+                        "icon": "school",
+                        "link": reverse_lazy("admin:education_makerclass_changelist"),
+                    },
+                    {
+                        "title": "Students",
+                        "icon": "person",
+                        "link": reverse_lazy("admin:education_student_changelist"),
+                    },
+                    {
+                        "title": "Discount Codes",
+                        "icon": "sell",
+                        "link": reverse_lazy("admin:education_classdiscountcode_changelist"),
+                    },
+                    {
+                        "title": "Orientations",
+                        "icon": "explore",
+                        "link": reverse_lazy("admin:education_orientation_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Billing",
+                "items": [
+                    {
+                        "title": "Orders",
+                        "icon": "receipt_long",
+                        "link": reverse_lazy("admin:billing_order_changelist"),
+                    },
+                    {
+                        "title": "Invoices",
+                        "icon": "request_quote",
+                        "link": reverse_lazy("admin:billing_invoice_changelist"),
+                    },
+                    {
+                        "title": "Revenue Splits",
+                        "icon": "pie_chart",
+                        "link": reverse_lazy("admin:billing_revenuesplit_changelist"),
+                    },
+                    {
+                        "title": "Subscription Plans",
+                        "icon": "loyalty",
+                        "link": reverse_lazy("admin:billing_subscriptionplan_changelist"),
+                    },
+                    {
+                        "title": "Subscriptions",
+                        "icon": "autorenew",
+                        "link": reverse_lazy("admin:billing_membersubscription_changelist"),
+                    },
+                    {
+                        "title": "Payouts",
+                        "icon": "payments",
+                        "link": reverse_lazy("admin:billing_payout_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Outreach",
+                "items": [
+                    {
+                        "title": "Leads",
+                        "icon": "contact_mail",
+                        "link": reverse_lazy("admin:outreach_lead_changelist"),
+                    },
+                    {
+                        "title": "Tours",
+                        "icon": "tour",
+                        "link": reverse_lazy("admin:outreach_tour_changelist"),
+                    },
+                    {
+                        "title": "Events",
+                        "icon": "event",
+                        "link": reverse_lazy("admin:outreach_event_changelist"),
+                    },
+                    {
+                        "title": "Buyables",
+                        "icon": "storefront",
+                        "link": reverse_lazy("admin:outreach_buyable_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Settings",
+                "items": [
+                    {
+                        "title": "Settings",
+                        "icon": "settings",
+                        "link": reverse_lazy("admin:core_setting_changelist"),
+                    },
+                ],
+            },
         ],
     },
 }
+
+# django-guardian
+ANONYMOUS_USER_NAME = None
+
+# Stripe (dj-stripe)
+STRIPE_LIVE_SECRET_KEY = os.environ.get("STRIPE_LIVE_SECRET_KEY", "")
+STRIPE_TEST_SECRET_KEY = os.environ.get("STRIPE_TEST_SECRET_KEY", "")
+STRIPE_LIVE_MODE = os.environ.get("STRIPE_LIVE_MODE", "False").lower() == "true"
+DJSTRIPE_WEBHOOK_SECRET = os.environ.get("DJSTRIPE_WEBHOOK_SECRET", "")
+DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
